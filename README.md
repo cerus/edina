@@ -116,7 +116,7 @@ In order to interact with the host system, Edina features a few so-called "nativ
 ```r
 native_stack_debug      # Print the stack contents to stdout    [] -> []
 native_open             # Open a file                           [FLAGS, PATH] -> [FD]
-native_write            # Write data to file descriptor         [FD, DATA, AMT] -> [RES]
+native_write            # Write data to file descriptor         [FD, DATA] -> [RES]
 native_read             # Read data from file descriptor        [FD, AMT] -> [RES]
 native_close            # Close an opened file descriptor       [FD] -> [RES]
 native_time             # Get current time in seconds           [] -> [TIME]
