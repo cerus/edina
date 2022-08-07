@@ -14,4 +14,6 @@ jobs:
         with:
           java-version: 17
       - name: Build
-        run: ./scripts/full_build.sh
+        run: |
+          chmod -R +x ./scripts
+          ./scripts/full_build.sh
