@@ -1,0 +1,87 @@
+import "stdlib/stack" as stack
+
+#              #############################
+#              # Standard file descriptors #
+#              #############################
+
+[ eddoc={ stack={ in="" out="Descriptor for Std Out" } desc="Puts the file descriptor for Std Out on the stack" } ]
+rt std_out 1 end
+[ eddoc={ stack={ in="" out="Descriptor for Std Err" } desc="Puts the file descriptor for Std Err on the stack" } ]
+rt std_err 2 end
+[ eddoc={ stack={ in="" out="Descriptor for Std In" } desc="Puts the file descriptor for Std In on the stack" } ]
+rt std_in 0 end
+
+#              ###################
+#              # Public routines #
+#              ###################
+
+#
+# Print a string to stdout
+#
+[ eddoc={
+    stack={ in="Target descriptor $int, String $str" out="" }
+    desc="Writes a string to the target descriptor"
+} ]
+rt print
+  # [T, Len, c, b, a]
+  over 2 + 1 swap lroll  # [Len, c, b, a, T]
+
+  # Strings are naturally reversed, so we need to reverse them
+  # Stack looks like this: [Len, c, b, a, T]
+  dup dup         # Duplicate string length twice
+  2 +             # Add 2 to the length
+  1 swap          # Push 1 and swap the 1 with length+2
+  lroll           # Roll x items 1 time to the left [x: the length+2 which we just calculated]
+    # Our stack now looks like this: Top [Len, c, b, a, Len, T] Bottom
+  dup 2 +         # lroll consumed our calculated length so we need to calculate it again here
+  :stack.rot      # Reverse (rotate) x items [x: the length+1 which we just calculated]
+  dup 3 + 2 swap  # Prepare to roll T to the front
+  rroll pop       # Target is now at front
+  native_write    # Call the native write routine
+  pop             # Discard return value of native_write
+end
+
+#
+# Print a string and a linefeed to stdout
+#
+[ eddoc={
+    stack={ in="Target descriptor $int, String $str" out="" }
+    desc="Writes a string and a linefeed to the target descriptor"
+} ]
+rt println
+  # [T, Len, c, b, a]
+  10             # Push \n
+  1 3 lroll      # Roll \n to the end of the string
+  swap 1 + swap  # Increment string length
+  .print         # Call print routine
+end
+
+[ eddoc={
+    stack={ in="String $str" out="" }
+    desc="Writes a string to stdout"
+} ]
+rt print_out
+  .std_out .print
+end
+[ eddoc={
+    stack={ in="String $str" out="" }
+    desc="Writes a string and a linefeed to stdout"
+} ]
+rt println_out
+  .std_out .println
+end
+
+[ eddoc={
+    stack={ in="String $str" out="" }
+    desc="Writes a string to stderr"
+} ]
+rt print_err
+  .std_err .print
+end
+[ eddoc={
+    stack={ in="String $str" out="" }
+    desc="Writes a string and a linefeed to stderr"
+} ]
+rt println_err
+  .std_err .println
+end

@@ -1,0 +1,237 @@
+import "stdlib/stack" as stack
+
+#              ###################
+#              # Public routines #
+#              ###################
+
+#
+# Combine two strings together
+#
+[ eddoc={
+    stack={ in="String 2 $str, String 1 $str" out="Combined string $str" }
+    desc="Concatenate (combine / join) two strings together"
+} ]
+rt concatenate
+  # [LEN1, f, e, d, LEN2, c, b, a]
+  dup 2 +       # [LEN1+2, LEN1, f, e, d LEN2, c, b, a]
+  1 swap rroll  # [LEN2, LEN1, f, e, d, c, b, a]
+  +             # [LEN, f, e, d, c, b, a]
+end
+
+[ eddoc={
+    stack={ in="String 2 $str, String 1 $str" out="Combined string $str" }
+    desc="Alias for .concatenate"
+} ]
+rt concat .concatenate end
+
+#
+# Reverse a string
+#
+[ eddoc={
+    stack={ in="String $str" out="String $str" }
+    desc="Reverses the string"
+} ]
+rt reverse
+  # [LEN, c, b, a]
+  dup dup 2 +         # [LEN+2, LEN, LEN, c, b, a]
+  1 swap lroll        # [LEN, c, b, a, LEN]
+  dup 2 + :stack.rot  # [LEN, a, b, c, LEN]
+  dup 2 +             # [LEN+2, LEN, a, b, c, LEN]
+  1 swap rroll        # [LEN, LEN, a, b, c]
+  pop
+end
+
+#
+# Count the amount of times a char is present in a string
+#
+[ eddoc={
+    stack={ in="Character $int, String $str" out="Occurrences $int, String $str" }
+    desc="Counts the amount of times a char is present in a string - Can be used for contains checks"
+} ]
+rt contains
+  # [CC, LEN, c, b, a]
+  0         # [R, CC, LEN, c, b, a]
+  1 3 rroll # [LEN, R, CC, c, b, a]
+  dup       # [LEN, LEN, R, CC, c, b, a]
+  # [LEN, LEN, R, CC, c, b, a]
+  ifgt
+    # Top LEN -> LOOP
+    # [LOOP, LEN, R, CC, c, b, a]
+    while
+      # [LOOP, LEN, R, CC, c, b, a]
+      1 4 rroll  # [CC, LOOP, LEN, R, c, b, a]
+      1 5 rroll  # [c, CC, LOOP, LEN, R, b, a]
+      over over  # [c, CC, c, CC, LOOP, LEN, R, b, a]
+      -          # [c-CC, c, CC, LOOP, LEN, R, b, a]
+
+      ifz
+        # Yep, string contains CC
+        pop 1 5 rroll  # [R, c, CC, LOOP, LEN, b, a]
+        1 +            # [R(1), c, CC, LOOP, LEN, b, a]
+      else
+        pop 1 5 rroll  # [R(?), c, CC, LOOP, LEN, b, a]
+      end
+
+      # Prepare for next iteration
+      # [LOOP, LEN, R, CC, c, b, a]
+      1 5 lroll         # [c, CC, LOOP, LEN, R, b, a]
+      swap              # [CC, c, LOOP, LEN, R, b, a]
+      1 5 lroll         # [c, LOOP, LEN, R, CC, b, a]
+      1 3 rroll         # [LEN, c, LOOP, R, CC, b, a]
+      swap over         # [LEN, c, LEN, LOOP, R, CC, b, a]
+      4 + 1 swap lroll  # [LEN, LOOP, R, CC, b, a, c]
+      swap 1 swap -     # [LOOP-1, LEN, R, CC, b, a, c]
+    end
+    pop        # [LEN, R, CC, b, a, c]
+    1 3 rroll  # [CC, LEN, R, b, a, c]
+    pop swap   # [R, LEN, b, a, c]
+  else
+    1 4 lroll pop pop pop 0
+  end
+end
+
+#
+# Alias for routine 'contains'
+#
+[ eddoc={
+    stack={ in="Character $int, String $str" out="Occurrences $int, String $str" }
+    desc="Alias for .contains"
+} ]
+rt count
+  .contains
+end
+
+#
+# Trim the end of a string to remove a certain character
+#
+[ eddoc={
+    stack={ in="Trim char $int, String $str" out="String $str" }
+    desc="Trim the specified character away from the end of a string"
+} ]
+rt trim_end
+  # [TC, LEN, c, b, a]
+  over 2 +      # [LEN+2, TC, LEN, c, b, a]
+  1 swap lroll  # [LEN, c, b, a, TC]
+  1             # [LOOP, LEN, c, b, a, TC]
+
+  # Trim end of string
+  while
+    # [LOOP, LEN, c, b, a, TC]
+    swap  # [LEN, LOOP(1), c, b, a, TC]
+    iflt            # if (LEN <= 0)
+      swap pop 0      # [LOOP(0), LEN, c, b, a, TC]
+    else
+      dup 3 +    # [LEN+3, LEN, LOOP(1), c, b, a, TC]
+      1 swap rroll    # [TC, LEN, LOOP(1), c, b, a]
+      swap 1 3 rroll  # [LOOP(1), LEN, TC, c, b, a]
+      over 3 +        # [LEN+3, LOOP(1), LEN, TC, c, b, a]
+      1 swap lroll    # [LEN, TC, c, b, a, LOOP(1)]
+      1 3 lroll       # [TC, c, LEN, b, a, LOOP(1)]
+      over over -     # [TC-c, TC, c, LEN, b, a, LOOP(1)]
+      ifz            # if (TC-c == 0)
+        # Prepare for next loop iteration
+        # [LOOP, LEN, c, b, a, TC]
+        pop            # [TC, c, LEN, b, a, LOOP(1)]
+        swap pop       # [TC, LEN, b, a, LOOP(1)]
+        swap 1 swap -  # [LEN-1, TC, b, a, LOOP(1)]
+        dup 3 +        # [LEN+3, LEN, TC, b, a, LOOP(1)]
+        1 swap rroll   # [LOOP(1), LEN, TC, b, a]
+        1 3 lroll      # [LEN, TC, LOOP(1), b, a]
+        swap over 3 +  # [LEN+3, TC, LEN, LOOP(1), b, a]
+        1 swap lroll   # [LEN, LOOP(1), b, a, TC]
+        swap           # [LOOP(1), LEN, b, a, TC]
+      else
+        # End loop
+        pop             # [TC, c, LEN, b, a, LOOP(1)]
+        swap 1 3 lroll  # [TC, LEN, c, b, a, LOOP(1)]
+        over 3 +        # [LEN+3, TC, LEN, c, b, a, LOOP(1)]
+        1 swap rroll    # [LOOP(1), TC, LEN, c, b, a]
+        pop 0           # [LOOP(0), TC, LEN, c, b, a]
+
+        # Reset everything
+        # [LOOP, LEN, c, b, a, TC]
+        1 3 lroll       # [TC, LEN, LOOP(0), c, b, a]
+        over 3 +        # [LEN+3, TC, LEN, LOOP(0), c, b, a]
+        1 swap lroll    # [LEN, LOOP(0), c, b, a, TC]
+        swap            # [LOOP(0), LEN, c, b, a, TC]
+      end
+    end
+  end
+
+  # [LOOP, LEN, c, b, a, TC]
+  pop dup 2 + 1 swap rroll pop  # [LEN, c, b, a]
+end
+
+#
+# Trim the start of a string to remove a certain character
+# This routine will just reverse the string and call 'trim_end'.
+#
+[ eddoc={
+    stack={ in="Trim char $int, String $str" out="String $str" }
+    desc="Trim the specified character away from the start of a string"
+} ]
+rt trim_start
+  # [TC, LEN, c, b, a]
+  over 2 + 1 swap lroll  # [LEN, c, b, a, TC] *
+  .reverse               # [LEN, a, b, c, TC] *
+  dup 2 + 1 swap rroll   # [TC, LEN, a, b, c] *
+
+  .trim_end
+
+  # [LEN, c, b, a]
+  .reverse
+end
+
+#
+# Trim the start and end of a string to remove a certain character
+# This routine will just call 'trim_end' and 'trim_start'.
+#
+[ eddoc={
+    stack={ in="Trim Char $int, String $str" out="String $str" }
+    desc="Trim the specified char away from the start and end of a string"
+} ]
+rt trim
+  # [TC, LEN, c, b, a]
+  over over      # [TC, LEN, TC, LEN, c, b, a]
+  swap 3 +       # [LEN+3, TC, TC, LEN, c, b, a]
+  1 swap lroll   # [TC, LEN, c, b, a, TC]
+  .trim_end      # [LEN, c, b, a, TC]
+  dup 2 +        # [LEN+2, LEN, c, b, a, TC]
+  1 swap rroll   # [TC, LEN, c, b, a]
+  .trim_start    # [LEN, c, b, a]
+end
+
+#
+# Remove space, line feed and tab characters from the start and end of a string
+#
+[ eddoc={
+    stack={ in="Trim char $int, String $str" out="String $str" }
+    desc="Trim space, linefeed and tab away from the start and end of a string"
+} ]
+rt trim_whitespace
+  # [LEN, c, b, a]
+  1  # [LOOP, LEN, c, b, a]
+  while
+    pop 0                  # [LOOP(0), LEN, c, b, a]
+    over 2 + 1 swap lroll  # [LEN, c, b, a, LOOP]
+
+    " " pop .trim
+    "\n" pop .trim
+    "\t" pop .trim
+
+    " " pop .count           # [C, LEN, c, b, a, LOOP]
+    over 3 + 1 swap rroll    # [LOOP, C, LEN, c, b, a]
+    + over 2 + 1 swap lroll  # [LEN, c, b, a, LOOP]
+
+    "\n" pop .count          # [C, LEN, c, b, a, LOOP]
+    over 3 + 1 swap rroll    # [LOOP, C, LEN, c, b, a]
+    + over 2 + 1 swap lroll  # [LEN, c, b, a, LOOP]
+
+    "\t" pop .count          # [C, LEN, c, b, a, LOOP]
+    over 3 + 1 swap rroll    # [LOOP, C, LEN, c, b, a]
+    + over 2 + 1 swap lroll  # [LEN, c, b, a, LOOP]
+
+    dup 2 + 1 swap rroll     # [LOOP, LEN, c, b, a]
+  end
+  pop
+end

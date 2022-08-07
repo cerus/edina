@@ -1,0 +1,13 @@
+target/
+.idea/
+*.iml
+dependency-reduced-pom.xml
+
+asm_backup/
+asm_backup2/
+tools/
+eddoc-out/
+asm_*.txt
+script.jar
+script.edina
+dump.txt

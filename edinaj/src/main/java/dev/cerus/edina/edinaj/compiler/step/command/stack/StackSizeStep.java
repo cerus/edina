@@ -1,0 +1,30 @@
+package dev.cerus.edina.edinaj.compiler.step.command.stack;
+
+import dev.cerus.edina.ast.ast.Command;
+import dev.cerus.edina.edinaj.compiler.CompilerSettings;
+import dev.cerus.edina.edinaj.compiler.StepData;
+import dev.cerus.edina.edinaj.compiler.step.CompilerStep;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import static org.objectweb.asm.Opcodes.*;
+
+public class StackSizeStep implements CompilerStep<StepData<Command.StackSizeCommand>> {
+
+    @Override
+    public void compile(final ClassWriter cw, final CompilerSettings settings, final StepData<Command.StackSizeCommand> obj) {
+        final MethodVisitor methodVisitor = obj.methodVisitor();
+
+        final Label label0 = new Label();
+        methodVisitor.visitLabel(label0);
+        methodVisitor.visitLineNumber(obj.data().getOrigin().getLine(), label0);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, settings.getStackName(), "stackSize", "()I", false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, settings.getStackName(), "push", "(Ljava/lang/Object;)V", false);
+    }
+
+}

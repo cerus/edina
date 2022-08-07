@@ -1,0 +1,3 @@
+*.edina linguist-language=R
+scripts/** linguist-documentation
+stdlib/** linguist-documentation

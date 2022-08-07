@@ -1,0 +1,24 @@
+#              ###################
+#              # Public routines #
+#              ###################
+
+[ eddoc={
+    stack={ in="Amount of items to rotate $int" out="" }
+    desc="Rotates x items of the stack"
+} ]
+rt rotate
+  while
+    swap      # [a, 4, b, c, d]
+    over 1 +  # [4+1, a, 4, b, c, d]
+    1 swap    # [4+1, 1, a, 4, b, c, d]
+    lroll     # [4, b, c, d, a]
+    1 swap -  # [3, b, c, d, a]
+  end
+  pop
+end
+
+[ eddoc={
+    stack={ in="Amount of items to rotate $int" out="" }
+    desc="Alias for .rotate"
+} ]
+rt rot .rotate end

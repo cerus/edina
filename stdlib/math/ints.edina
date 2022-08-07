@@ -1,0 +1,239 @@
+import "stdlib/stack" as stack
+
+#              ######################
+#              # Number mins & maxs #
+#              ######################
+
+#
+# Min and max values for numbers
+#
+[ eddoc={ stack={ out="Int32 max $int" } desc="Push the maximum value of a 32-bit integer onto the stack" } ]
+rt int32_max
+  2147483647
+end
+[ eddoc={ stack={ out="Int32 min $int" } desc="Push the minimum value of a 32-bit integer onto the stack" } ]
+rt int32_min
+  -2147483648
+end
+[ eddoc={ stack={ out="Int64 max $int" } desc="Push the maximum value of a 64-bit integer onto the stack" } ]
+rt int64_max
+  9223372036854775807
+end
+[ eddoc={ stack={ out="Int64 min $int" } desc="Push the minimum value of a 64-bit integer onto the stack" } ]
+rt int64_min
+  -9223372036854775808
+end
+
+#              ###################
+#              # Public routines #
+#              ###################
+
+#
+# Negate a number
+#
+[ eddoc={
+    stack={ in="Num $int" out="Negated num $int" }
+    desc="Negate number"
+} ]
+rt negate
+  -1 *
+end
+
+#
+# Convert an int to a string
+# This routine is a translation of Javas Long#getChars().
+#
+[ eddoc={
+    stack={ in="Num $int" out="Number converted to string $str" }
+    desc="Negate number"
+} ]
+rt int_to_str
+  dup .int_str_size swap 0 0  # Init vars / Stack: [Q, R, X, S]
+
+  1 3 rroll
+  ifgt .negate 0              # Negate input number and push 0
+  else 1 end                  # Else push 1
+
+  # N X Q R S
+  1 5 lroll   # X Q R S N
+  1 3 lroll   # Q R X S N
+  1 5 rroll   # N Q R X S
+
+  # Stack: [N, Q, R, X, S]
+
+  1 4 rroll dup 1 5 lroll  # [X, N, Q, R, X, S]
+  .int32_min swap -        # [X-i32, N, Q, R, X, S]
+
+  ifgt pop 0 end
+  while
+    # [X-i32, N, Q, R, X, S]
+    2 5 lroll          # [Q, R, X, X-i32, N, S]
+    1 3 rroll          # [X, Q, R, X-i32, N, S]
+    over over          # [X, Q, X, Q, R, X-i32, N, S]
+    100 swap /         # [X/100, Q, X, Q, R, X-i32, N, S]
+    swap pop           # [X/100, X, Q, R, X-i32, N, S]
+    1 3 rroll          # [Q, X/100, X, R, X-i32, N, S]
+                       # X/100 -> Q
+    pop                # Pop old Q / [Q, X, R, X-i32, N, S]
+    swap 1 3 lroll     # [Q, R, X, X-i32, N, S]
+    dup 100 *          # [Q*100, Q, R, X, X-i32, N, S]
+    1 4 rroll          # [X, Q*100, Q, R, X-i32, N, S]
+    dup 1 5 lroll      # [X, Q*100, Q, R, X, X-i32, N, S]
+    swap -             # [(Q*100)-X, Q, R, X, X-i32, N, S]
+                       # (Q*100)-X -> R
+    1 3 rroll pop      # [R, Q, X, X-i32, N, S]
+    1 3 lroll          # [Q, X, R, X-i32, N, S]
+    swap pop dup       # Pop X, dup Q -> X / [Q, X, R, X-i32, N, S]
+    1 3 rroll          # [R, Q, X, X-i32, N, S]
+    dup ._digit_one    # [0, R, Q, X, X-i32, N, S]
+    1 7 lroll          # Forget about the char / [R, Q, X, X-i32, N, S, ...] -> ... = chars
+    dup ._digit_ten    # [0, R, Q, X, X-i32, N, S, ...]
+    1 7 lroll          # Forget about the char / [R, Q, X, X-i32, N, S, ...]
+    # What we need: [X-i32, N, Q, R, X, S]
+    swap 2 5 rroll     # [X-i32, N, Q, R, X, S, ...]
+    pop 1 4 rroll      # [X, N, Q, R, S, ...]
+    dup 1 5 lroll      # [X, N, Q, R, X, S, ...]
+    .int32_min swap -  # [X-i32, N, Q, R, X, S, ...]
+    ifgt pop 0 end
+  end
+
+  pop 1 4 rroll        # [X, N, Q, R, S, ...]
+  dup -100 swap -      # [X--100, X, N, Q, R, S, ...]
+  swap 1 5 lroll       # [X--100, N, Q, R, X, S, ...]
+  1 3 lroll            # [N, Q, X--100, R, X, S, ...]
+  swap pop 0 swap      # Reset Q to zero
+  1 3 rroll            # [X--100, N, Q, R, X, S, ...]
+
+  ifgt pop 0 end
+  while
+    # [X--100, N, Q, R, X, S, ...]
+    1 5 lroll                 # [N, Q, R, X, X--100, S, ...]
+    swap 1 4 rroll            # [X, Q, N, R, X--100, S, ...]
+    dup 100 swap /            # [X/100, X, Q, N, R, X--100, S, ...]
+    1 6 lroll swap 1 6 rroll  # [X/100, Q, X, N, R, X--100, S, ...]
+    swap pop                  # X/100 -> Q / [Q, X, N, R, X--100, S, ...]
+    dup 100 *                 # [Q*100, Q, X, N, R, X--100, S, ...]
+    1 3 rroll dup 1 4 lroll   # [X, Q*100, Q, X, N, R, X--100, S, ...]
+    swap -                    # [(Q*100)-X, Q, X, N, R, X--100, S, ...]
+    1 5 rroll pop             # (Q*100)-X -> R / [R, Q, X, N, X--100, S, ...]
+    1 3 lroll                 # [Q, X, R, N, X--100, S, ...]
+    dup 2 3 lroll             # [X, Q, Q, R, N, X--100, S, ...]
+    pop                       # Q -> X / [X, Q, R, N, X--100, S, ...]
+    1 3 rroll                 # [R, X, Q, N, X--100, S, ...]
+    dup ._digit_one           # [0, R, X, Q, N, X--100, S, ...]
+    1 7 lroll                 # Forget about the char / [R, X, Q, N, X--100, S, ...]
+    dup ._digit_ten           # [0, R, X, Q, N, X--100, S, ...]
+    1 7 lroll                 # Forget about the char / [R, X, Q, N, X--100, S, ...]
+    # [X--100, N, Q, R, X, S, ...]
+    2 4 lroll swap            # [N, Q, R, X, X--100, S, ...]
+    1 5 rroll                 # [X--100, N, Q, R, X, S, ...]
+    pop 1 4 rroll             # [X, N, Q, R, S, ...]
+    dup -100 swap -           # [X--100, X, N, Q, R, S, ...]
+    swap 1 5 lroll            # [X--100, N, Q, R, X, S, ...]
+    ifgt pop 0 end
+  end
+  pop  # Discard loop pointer
+
+  # [N, Q, R, X, S, ...]
+  swap 1 4 rroll           # [X, Q, N, R, S, ...]
+  dup 10 swap /            # [X/10, X, Q, N, R, S, ...]
+  1 3 rroll pop            # X/10 -> Q / [Q, X, N, R, S, ...]
+  dup 10 *                 # [Q*10, Q, X, N, R, S, ...]
+  1 3 rroll dup 1 4 lroll  # [X, Q*10, Q, X, N, R, S, ...]
+  swap -                   # [(Q*10)-X, Q, X, N, R, S, ...]
+  1 5 rroll pop            # (Q*10)-X -> R / [R, Q, X, N, S, ...]
+
+  # Transform R into char and push to back
+  dup 48 +                 # [0, R, Q, X, N, S, ...]
+  1 6 lroll                # Forget about char / [R, Q, X, N, S, ...]
+
+  # Check if Q is < 0
+  swap 1 +                 # [Q+1, R, X, N, S, ...]
+  iflt
+    1 -                    # [Q, R, X, N, S, ...]
+    48 +                   # [0, R, X, N, S, ...]
+    1 5 lroll              # Forget about char / [R, X, N, S, ...]
+  else pop end
+
+  # [R, X, N, S, ...]
+  pop pop 1 swap -  # [N-1, S, ...]
+  ifgt
+    45  # Code for '-'
+    1 3 lroll
+  end
+  pop  # Pop N
+
+  # Reverse the string
+  # Because strings are naturally reversed in Edina we need to reverse this currently upside down string
+  dup dup 2 + 1 swap lroll  # Put string length in front of string and after string
+  1 + :stack.rot            # Add 1 and rotate
+end
+
+#
+# Calculate the string length of an int
+# This routine is a translation of Javas Long#stringSize().
+#
+[ eddoc={
+    stack={ in="Num $int" out="String size $int" }
+    desc="Calculate the length that the specified int would occupy as a string"
+} ]
+rt int_str_size
+  ifgt .negate 0  # Negate input number and push 0
+  else 1 end      # Push 1
+
+  swap  # [X, 0/1]
+  -10   # [-10, X, 0/1]    (P)
+  18    # [18, P, X, 0/1] (LOOP)
+  while
+    dup 19 -       # Stack: [19-LOOP, LOOP, P, X, 0/1]
+    1 3 rroll      # Stack: [P, 19-LOOP, LOOP, X, 0/1]
+    2 5 rroll      # Stack: [X, 0/1, P, 19-LOOP, LOOP]
+    swap           # Stack: [0/1, X, P, 19-LOOP, LOOP]
+    1 5 lroll      # Stack: [X, P, 19-LOOP, LOOP, 0/1]
+    over over      # Stack: [X, P, X, P, 19-LOOP, LOOP, 0/1]
+    - 1 swap -     # Stack: [(X-P)-1, X, P, 19-LOOP, LOOP, 0/1]
+
+    ifgt           # if((X-P)-1 >= 0)
+      pop pop pop    # Discard (X-P)-1 and X and P
+      1 3 rroll      # Stack: [0/1, 19-LOOP, LOOP]
+      +              # Stack: [(0/1)+(19-LOOP), LOOP]
+      swap pop 1     # Stack: [1, (0/1)+(19-LOOP)]
+      -999 swap      # Stack: [1, -999, (0/1)+(19-LOOP)]
+    else
+      pop            # Discard (X-P)-1
+      swap 10 *      # Stack: [P*10, X, 19-LOOP, LOOP, 0/1]
+                     # What we need on the stack: [LOOP, P, X, 0/1]
+      1 3 rroll pop  # Stack: [P*10, X, LOOP, 0/1]
+      1 3 rroll      # Stack: [LOOP, P*10, X, 0/1]
+    end
+    1 swap -       # Decr loop
+  end
+
+  pop        # Pop the stack counter away
+  dup 999 +  # Duplicate top of the stack and add 999
+             # If the result is zero, we simply
+             # pop unused items and return
+
+  ifz        # If top of stack is zero...
+    pop pop  # ...pop top two items...
+  else       # ...else do more arithmetic
+    pop
+    1 3 rroll  # Stack: [0/1, P*10, X]
+    19 +       # Stack: [19+0/1, P*10, X]
+    1 3 lroll  # Stack: [P*10, X, 19+0/1]
+    pop pop
+  end
+end
+
+
+
+#              #####################
+#              # Internal routines #
+#              #####################
+
+rt _digit_one
+  10 swap % 48 +
+end
+rt _digit_ten
+  10 swap / 48 +
+end
