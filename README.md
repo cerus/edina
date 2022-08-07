@@ -15,12 +15,23 @@ Paradigms: [imperative](https://en.wikipedia.org/wiki/Imperative_programming), [
 
 ## Contents
 
-1. [Specification](#specification)
-2. [Running the JVM compiler](#running-the-jvm-compiler)
-3. [Building](#building)
-4. [Included scripts](#included-scripts)
-5. [EdinaJ development](#edinaj-development)
-6. [Credit](#credit)
+1. [Try it out](#try-it-out)
+2. [Specification](#specification)
+3. [Running the JVM compiler](#running-the-jvm-compiler)
+4. [Building](#building)
+5. [Included scripts](#included-scripts)
+6. [EdinaJ development](#edinaj-development)
+7. [Credit](#credit)
+
+## Try it out
+
+To try out Edina follow these steps:
+1. Clone the repository
+2. Build the project (see [Building](#building))
+3. Create `script.edina`
+4. Copy the contents of `examples/hello_world.edina` into `script.edina`
+5. Compile the script (`java -jar edinaj/target/edinaj.jar -P my.script -F script.edina -O script.jar`)
+6. Run the compiled Jar (`java -jar script.jar`)
 
 ## Specification
 

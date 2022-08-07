@@ -1,0 +1,2 @@
+import "stdlib/io/std"
+"Hello World!" :std.println_out
