@@ -1,5 +1,5 @@
 <img src="https://cerus.dev/img/edina_lang_logo.png" alt="Logo" align="right" width=140 height=140 />
-<h1 align="left">edina</h1>
+<h1 align="left">edina 📚</h1>
 
 Edina is a simple multi-paradigm programming language. It currently features a JVM compiler, a REPL and an ever expanding
 standard library.
