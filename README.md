@@ -12,6 +12,10 @@ Paradigms: [imperative](https://en.wikipedia.org/wiki/Imperative_programming), [
 <p align="center">
   <img width="400" src="https://cerus.dev/img/hello_world_edina2.png?" alt="&quot;Hello World&quot; program" />
 </p>
+<details align="center">
+  <summary>Source code -> Java bytecode</summary>
+  <img src="https://cerus.dev/img/edina_edinaj_transformation.png" alt="Java bytecode"/>
+</details>
 
 ## Contents
 
