@@ -1,0 +1,28 @@
+name: "Feature request"
+description: "Template for feature requests"
+labels: [ enhancement ]
+body:
+  - type: dropdown
+    attributes:
+      label: "Component"
+      options: [ "edinaj", "edinac", "eddoc", "ast", "cli", "Language", "Docs", "Other" ]
+      multiple: true
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "If you chose 'other': Specify the component"
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: "Feature description"
+      description: "Please describe the feature you want added in as much detail as possible."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Relevant issues"
+      description: "Please link any relevant issues here."
+    validations:
+      required: false
