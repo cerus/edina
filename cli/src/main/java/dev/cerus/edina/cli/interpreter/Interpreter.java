@@ -14,43 +14,47 @@ public class Interpreter implements Visitor<Void> {
 
     @Override
     public Void visitPush(final Command.PushCommand pushCommand) {
-        this.environment.push(pushCommand.getParsedValue());
+        if (pushCommand.getParsedValue() instanceof Number) {
+            this.environment.getStack().push(pushCommand.getParsedValue());
+        } else if (pushCommand.getParsedValue() instanceof String) {
+            this.environment.getStack().pushString((String) pushCommand.getParsedValue());
+        }
         return null;
     }
 
     @Override
     public Void visitPop(final Command.PopCommand popCommand) {
-        this.environment.pop();
+        this.environment.getStack().pop();
         return null;
     }
 
     @Override
     public Void visitDup(final Command.DupCommand dupCommand) {
-        this.environment.dup();
+        this.environment.getStack().dup();
         return null;
     }
 
     @Override
     public Void visitSwap(final Command.SwapCommand swapCommand) {
-        this.environment.swap();
+        this.environment.getStack().swap();
         return null;
     }
 
     @Override
     public Void visitOver(final Command.OverCommand overCommand) {
-        this.environment.over();
+        this.environment.getStack().over();
         return null;
     }
 
     @Override
     public Void visitRollLeft(final Command.RollLeftCommand rollLeftCommand) {
-        this.environment.rollLeft();
+        this.environment.getStack().rollLeft();
         return null;
     }
 
     @Override
     public Void visitRollRight(final Command.RollRightCommand rollRightCommand) {
-        this.environment.rollRight();
+        this.environment.getStack().rollRight();
         return null;
     }
 
@@ -76,57 +80,61 @@ public class Interpreter implements Visitor<Void> {
 
     @Override
     public Void visitStackSize(final Command.StackSizeCommand stackSizeCommand) {
-        this.environment.push(this.environment.stackSize());
+        this.environment.getStack().push(this.environment.getStack().stackSize());
         return null;
     }
 
     @Override
     public Void visitPlus(final Command.PlusCommand plusCommand) {
-        this.environment.push(this.environment.popNum() + this.environment.popNum());
+        this.environment.getStack().push(this.environment.getStack().popLong() + this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitMinus(final Command.MinusCommand minusCommand) {
-        this.environment.push(this.environment.popNum() - this.environment.popNum());
+        this.environment.getStack().push(this.environment.getStack().popLong() - this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitDivide(final Command.DivideCommand divideCommand) {
-        this.environment.push(this.environment.popNum() / this.environment.popNum());
+        this.environment.getStack().push(this.environment.getStack().popLong() / this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitMultiply(final Command.MultiplyCommand multiplyCommand) {
-        this.environment.push(this.environment.popNum() * this.environment.popNum());
+        this.environment.getStack().push(this.environment.getStack().popLong() * this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitModulo(final Command.ModuloCommand moduloCommand) {
-        this.environment.push(this.environment.popNum() % this.environment.popNum());
+        this.environment.getStack().push(this.environment.getStack().popLong() % this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitAnd(final Command.AndCommand andCommand) {
+        this.environment.getStack().push(this.environment.getStack().popLong() & this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitOr(final Command.OrCommand orCommand) {
+        this.environment.getStack().push(this.environment.getStack().popLong() | this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitXor(final Command.XorCommand xorCommand) {
+        this.environment.getStack().push(this.environment.getStack().popLong() ^ this.environment.getStack().popLong());
         return null;
     }
 
     @Override
     public Void visitFlip(final Command.FlipCommand flipCommand) {
+        this.environment.getStack().push(~this.environment.getStack().popLong());
         return null;
     }
 
@@ -137,21 +145,45 @@ public class Interpreter implements Visitor<Void> {
 
     @Override
     public Void visitIf(final Command.IfCommand ifCommand) {
+        if (switch (ifCommand.getType()) {
+            case IFN -> this.environment.getStack().peekLong() != 0;
+            case IFZ -> this.environment.getStack().peekLong() == 0;
+            case IFLT -> this.environment.getStack().peekLong() <= 0;
+            case IFGT -> this.environment.getStack().peekLong() >= 0;
+        }) {
+            for (final Command command : ifCommand.getIfBody()) {
+                this.visit(command);
+            }
+        } else if (ifCommand.getElseBody() != null && !ifCommand.getElseBody().isEmpty()) {
+            for (final Command command : ifCommand.getElseBody()) {
+                this.visit(command);
+            }
+        }
         return null;
     }
 
     @Override
     public Void visitImport(final Command.ImportCommand importCommand) {
+        System.out.println("Unsupported operation");
         return null;
     }
 
     @Override
     public Void visitImportCall(final Command.ImportCallCommand importCallCommand) {
+        System.out.println("Unsupported operation");
         return null;
     }
 
     @Override
     public Void visitLoop(final Command.LoopCommand loopCommand) {
+        while (switch (loopCommand.getType()) {
+            case UNTIL -> this.environment.getStack().peekLong() == 0;
+            case WHILE -> this.environment.getStack().peekLong() != 0;
+        }) {
+            for (final Command command : loopCommand.getBody()) {
+                this.visit(command);
+            }
+        }
         return null;
     }
 

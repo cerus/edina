@@ -1,8 +1,13 @@
 # edina/cli
 
-The `cli` module contains a simple REPL for the Edina language. This module has been neglected a little because I have been focussing on the JVM
-compiler. I will try to update this soon.
+The `cli` module contains a simple REPL for the Edina language. The REPL implements all Edina features except importing and native calls.
 
 ## How to run
 
 `java -jar edina-cli.jar`
+
+## Special commands
+
+`!stack`: Same as native_stack_debug\
+`!pop`: Pop the top stack item\
+`!string`: Interpret the top stack items as a string and print to stdout (without popping)

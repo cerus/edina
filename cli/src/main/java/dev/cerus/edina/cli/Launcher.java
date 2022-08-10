@@ -6,12 +6,12 @@ import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
 import dev.cerus.edina.cli.interpreter.Environment;
 import dev.cerus.edina.cli.interpreter.Interpreter;
+import dev.cerus.edina.edinaj.asm.Stack;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Launcher {
 
@@ -24,9 +24,25 @@ public class Launcher {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.equalsIgnoreCase("!stack")) {
-                System.out.println("[ " + environment.stack().stream()
-                        .map(o -> o + "")
-                        .collect(Collectors.joining(", ")) + " ]");
+                environment.getStack().debugPrint();
+                continue;
+            }
+            if (line.equalsIgnoreCase("!pop")) {
+                environment.getStack().pop();
+                continue;
+            }
+            if (line.equalsIgnoreCase("!string")) {
+                final Stack stack = environment.getStack();
+                final byte[] arr = stack.popByteArray();
+                final byte[] copy = new byte[arr.length];
+                for (int i = 0; i < arr.length; i++) {
+                    copy[copy.length - 1 - i] = arr[i];
+                }
+                for (final byte b : copy) {
+                    stack.push(b);
+                }
+                stack.push(copy.length);
+                System.out.println(new String(copy));
                 continue;
             }
 
