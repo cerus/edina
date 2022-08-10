@@ -36,7 +36,7 @@ To try out Edina follow these steps:
 ## Specification
 
 Edina programs are usually called scripts, even though they are compiled. A script contains many commands. Edina is not whitespace sensitive, and you
-do not have to terminate your statements. The only place where a terminator command is needed is in routine, loop or if blocks.
+do not have to terminate your statements. The only place where a terminator command is needed is in routine-, loop- and if-blocks.
 
 Edina features a small set of commands which, when combined, can be used to create powerful and complex programs.
 
