@@ -1,0 +1,26 @@
+import "stdlib/io/std"
+import "stdlib/strings"
+
+[ eddoc={
+    desc="Pushes \"Hello\" onto the stack"
+    stack={ in="" out="Hello $str" }
+} ]
+rt str_hello
+  "Hel"
+  "lo"
+  :strings.concat
+end
+
+[ eddoc={
+    desc="Pushes \"World!\" onto the stack"
+    stack={ in="" out="World! $str" }
+} ]
+rt str_world
+  "Wor"
+  "ld!"
+  :strings.concat
+end
+
+.str_hello " " :strings.concat  # Concatenate "Hello" and " "
+.str_world :strings.concat      # Concatenate "Hello " and "World!"
+:std.println_out
