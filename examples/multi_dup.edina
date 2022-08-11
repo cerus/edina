@@ -1,0 +1,24 @@
+[ eddoc={
+    desc="Duplicate an item N times"
+    stack={ in="N - Amount of times to duplicate X $int, X - Item to duplicate" out="Duplicated Xs $int" }
+} ]
+rt multi_dup
+  # [N, X]
+  # X = Item to duplicate
+  # N = How many times to duplicate X
+
+  while
+    # [N, X]
+    swap dup   # [X, X, N]
+    1 3 rroll  # [N, X, X]
+    1 swap -   # [N-1, X, X]
+  end
+  # [N(0), X, ...]
+  pop  # [X, ...]
+end
+
+69 5        # Push 69 and 5
+.multi_dup  # Duplicate 69 5 times
+# Stack should look like this: [69, 69, 69, 69, 69, 69]
+
+native_stack_debug

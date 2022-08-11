@@ -42,6 +42,33 @@ To try out Edina follow these steps:
 Edina programs are usually called scripts, even though they are compiled. A script contains many commands. Edina is not whitespace sensitive, and you
 do not have to terminate your statements. The only place where a terminator command is needed is in routine-, loop- and if-blocks.
 
+Let's start with the most important feature first: Comments! Edina comments are started with a `#` and span across the rest of the line.
+
+Comments are very important for the readability of code - the stack-oriented design can make it difficult to understand what code is doing with a quick glance. Documenting your Edina code helps others understand what is going on. This is usually done with so-called stack diagrams.
+
+A stack diagram in Edina describes how the stack will look like after a set of operations has finished. Stack diagrams usually look like this `[a, b, c]` where the leftmost item represents the top and the rightmost item represents the bottom of the stack.
+
+```r
+# This is a comment
+1 2 3 pop swap  # This is another comment
+
+# How stack diagrams are used:
+rt multi_dup
+  # [N, X]
+  # X = Item to duplicate
+  # N = How many times to duplicate X
+  
+  while
+    # [N, X]
+    swap dup   # [X, X, N]
+    1 3 rroll  # [N, X, X]
+    1 swap -   # [N-1, X, X]
+  end
+  # [N(0), X, ...]
+  pop  # [X, ...]
+end
+```
+
 Edina features a small set of commands which, when combined, can be used to create powerful and complex programs.
 
 ```r
