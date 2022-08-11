@@ -119,7 +119,7 @@ public class Natives {
         final long fd = this.stack.popLong();
         final long amount = this.stack.popLong();
 
-        byte[] data = null;
+        Map.Entry<byte[], Integer> data = null;
         int response = 0;
         try {
             if (fd == 0) {
@@ -142,10 +142,11 @@ public class Natives {
         if (response == -1) {
             this.stack.push(response);
         } else {
-            for (final byte b : data) {
+            for (final byte b : data.getKey()) {
                 this.stack.push(b);
             }
-            this.stack.push(data.length);
+            this.stack.push(data.getKey().length);
+            this.stack.push(data.getValue());
         }
     }
 
@@ -157,7 +158,7 @@ public class Natives {
         final byte[] data = this.stack.popByteArray();
         final long amount = data.length;
 
-        int response = 0;
+        int response;
         try {
             if (fd >= 1 && fd <= 2) {
                 final OutputStream out = switch ((int) fd) {
@@ -165,42 +166,39 @@ public class Natives {
                     case 2 -> System.err;
                     default -> null;
                 };
-                this.write0(out, data, (int) amount);
+                response = this.write0(out, data, (int) amount);
             } else {
                 if (!this.openedChannels.containsKey(fd)) {
                     response = -1;
                 } else {
-                    this.write0(this.openedChannels.get(fd), data, (int) amount);
+                    response = this.write0(this.openedChannels.get(fd), data, (int) amount);
                 }
             }
         } catch (final IOException e) {
             response = -1;
         }
-
-        if (response == -1) {
-            this.stack.push(response);
-        } else {
-            this.stack.push(data.length);
-        }
+        this.stack.push(response);
     }
 
-    private void write0(final Object t, final byte[] buf, final int amt) throws IOException {
+    private int write0(final Object t, final byte[] buf, final int amt) throws IOException {
         if (t instanceof OutputStream out) {
             out.write(buf, 0, amt);
         } else if (t instanceof FileChannel fc) {
-            fc.write(ByteBuffer.wrap(buf, 0, amt));
+            return fc.write(ByteBuffer.wrap(buf, 0, amt));
         }
+        return buf.length;
     }
 
-    private byte[] read0(final Object s, final int amt) throws IOException {
+    private Map.Entry<byte[], Integer> read0(final Object s, final int amt) throws IOException {
         final byte[] buf = new byte[amt];
+        int read = 0;
         if (s instanceof InputStream in) {
-            in.read(buf);
+            read = in.read(buf);
         } else if (s instanceof FileChannel fc) {
             final ByteBuffer buffer = ByteBuffer.wrap(buf);
-            fc.read(buffer);
+            read = fc.read(buffer);
         }
-        return buf;
+        return Map.entry(buf, read);
     }
 
     public void closeAll() throws IOException {
