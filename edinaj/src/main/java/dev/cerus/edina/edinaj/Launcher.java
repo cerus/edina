@@ -5,6 +5,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public class Launcher {
         edinaJ.compile();
     }
 
-    static class Options {
+    public static class Options {
 
         @Parameter(
                 order = 1,
@@ -85,6 +86,17 @@ public class Launcher {
                 description = "Runs the Jar after compilation"
         )
         public boolean run = false;
+
+        @Parameter(
+                order = 8,
+                names = {"--optimize"},
+                description = "Specify optimizations that should be applied"
+        )
+        public List<Optimization> optimizations = new ArrayList<>();
+
+        public enum Optimization {
+            ROUTINE_INLINE
+        }
 
     }
 

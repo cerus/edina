@@ -78,7 +78,8 @@ public class EdinaJ {
                 this.options.packageName,
                 this.options.debug,
                 this.options.quiet,
-                inclusions
+                inclusions,
+                this.options.optimizations
         ));
 
         // Read script lines
@@ -97,7 +98,7 @@ public class EdinaJ {
             final List<Command> ast = new Parser(lines, tokens).parse();
             for (final Command command : ast) {
                 if (command instanceof Command.RoutineDeclareCommand decl) {
-                    compiler.addRoutineNames(decl);
+                    compiler.addRoutines(decl);
                 }
             }
             for (final Command command : ast) {

@@ -5,6 +5,7 @@ import dev.cerus.edina.ast.ast.Command;
 import dev.cerus.edina.ast.ast.Visitor;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
+import dev.cerus.edina.edinaj.Launcher;
 import dev.cerus.edina.edinaj.compiler.exception.CompilerException;
 import dev.cerus.edina.edinaj.compiler.step.CompilerStep;
 import dev.cerus.edina.edinaj.compiler.step.command.branch.IfStep;
@@ -29,11 +30,9 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -42,7 +41,9 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class Compiler implements Visitor<Void> {
 
-    private final Collection<String> routineNames = new HashSet<>();
+    private static final int ROUTINE_INLINE_SIZE = 5;
+
+    private final CompilerEnv compilerEnv = new CompilerEnv();
     private final Map<String, byte[]> referencedClasses = new LinkedHashMap<>();
     private final Map<String, String> referenceNames = new LinkedHashMap<>();
     private final Map<String, String> referencePaths = new LinkedHashMap<>();
@@ -169,6 +170,13 @@ public class Compiler implements Visitor<Void> {
     private void finishCommon() {
         this.compile(new ConstructorStep(), null);
 
+        for (final String routineName : this.compilerEnv.getRoutineNames()) {
+            if (!this.compilerSettings.optimizationEnabled(Launcher.Options.Optimization.ROUTINE_INLINE)
+                    || this.compilerEnv.isUsed(routineName)) {
+                this.compile(new RoutineDeclareStep(), this.compilerEnv.getRoutine(routineName));
+            }
+        }
+
         final Label label1 = new Label();
         this.mainMethodVisitor.visitLabel(label1);
         this.mainMethodVisitor.visitLineNumber(100, label1);
@@ -186,12 +194,12 @@ public class Compiler implements Visitor<Void> {
         }
     }
 
-    public void addRoutineNames(final Command.RoutineDeclareCommand... declarations) {
+    public void addRoutines(final Command.RoutineDeclareCommand... declarations) {
         for (final Command.RoutineDeclareCommand rt : declarations) {
-            if (this.routineNames.contains(rt.getRoutineName())) {
+            if (this.compilerEnv.routineExists(rt.getRoutineName())) {
                 throw new CompilerException("Routine can not be declared more than once", rt.getOrigin());
             }
-            this.routineNames.add(rt.getRoutineName());
+            this.compilerEnv.addRoutine(rt);
         }
     }
 
@@ -249,16 +257,27 @@ public class Compiler implements Visitor<Void> {
 
     @Override
     public Void visitRoutineCall(final Command.RoutineCallCommand routineCallCommand) {
-        if (!this.routineNames.contains(routineCallCommand.getRoutineName())) {
+        final Command.RoutineDeclareCommand routine = this.compilerEnv.getRoutine(routineCallCommand.getRoutineName());
+        if (routine == null) {
             throw new CompilerException(routineCallCommand, "Unknown routine");
         }
-        this.compile(new RoutineCallStep(), routineCallCommand);
+        if (this.compilerSettings.optimizationEnabled(Launcher.Options.Optimization.ROUTINE_INLINE)
+                && routine.getRoutineBody().size() <= ROUTINE_INLINE_SIZE
+                && routine.getRoutineBody().stream().allMatch(this::isSimpleExtended)) {
+            for (final Command command : routine.getRoutineBody()) {
+                this.visit(command);
+            }
+        } else {
+            this.compilerEnv.markUse(routine.getRoutineName());
+            this.compile(new RoutineCallStep(), routineCallCommand);
+        }
         return null;
     }
 
     @Override
     public Void visitRoutineDeclare(final Command.RoutineDeclareCommand routineDeclareCommand) {
-        this.compile(new RoutineDeclareStep(), routineDeclareCommand);
+        // Only used routines will be compiled
+        //this.compile(new RoutineDeclareStep(), routineDeclareCommand);
         return null;
     }
 
@@ -388,13 +407,14 @@ public class Compiler implements Visitor<Void> {
                     false,
                     this.compilerSettings.isQuiet(),
                     this.compilerSettings.getInclusions(),
+                    this.compilerSettings.getOptimizations(),
                     "c_" + importCommand.getImportName().split("\\.")[0],
                     this.compilerSettings.getOriginalPackage() != null ? this.compilerSettings.getOriginalPackage() : this.compilerSettings.getPackageName()
             ));
             subCompiler.parent = this;
             for (final Command command : commands) {
                 if (command instanceof Command.RoutineDeclareCommand decl) {
-                    subCompiler.addRoutineNames(decl);
+                    subCompiler.addRoutines(decl);
                 }
             }
             for (final Command command : commands) {
@@ -477,7 +497,7 @@ public class Compiler implements Visitor<Void> {
     }
 
     public Collection<String> getRoutineNames() {
-        return Set.copyOf(this.routineNames);
+        return this.compilerEnv.getRoutineNames();
     }
 
     private String getImportPathByParent(final File file) {
@@ -498,6 +518,29 @@ public class Compiler implements Visitor<Void> {
         if (!this.compilerSettings.isQuiet()) {
             System.out.println(o);
         }
+    }
+
+    private boolean isSimpleExtended(final Command command) {
+        return this.isSimple(command) || command instanceof Command.RoutineCallCommand;
+    }
+
+    private boolean isSimple(final Command command) {
+        return command instanceof Command.PlusCommand
+                || command instanceof Command.MinusCommand
+                || command instanceof Command.MultiplyCommand
+                || command instanceof Command.DivideCommand
+                || command instanceof Command.ModuloCommand
+                || command instanceof Command.AndCommand
+                || command instanceof Command.OrCommand
+                || command instanceof Command.XorCommand
+                || command instanceof Command.FlipCommand
+                || command instanceof Command.PushCommand
+                || command instanceof Command.PopCommand
+                || command instanceof Command.OverCommand
+                || command instanceof Command.SwapCommand
+                || command instanceof Command.RollLeftCommand
+                || command instanceof Command.RollRightCommand
+                || command instanceof Command.DupCommand;
     }
 
 }
