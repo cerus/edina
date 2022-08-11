@@ -97,7 +97,7 @@ public class EdinaJ {
             final List<Command> ast = new Parser(lines, tokens).parse();
             for (final Command command : ast) {
                 if (command instanceof Command.RoutineDeclareCommand decl) {
-                    compiler.addRoutineNames(decl.getRoutineName());
+                    compiler.addRoutineNames(decl);
                 }
             }
             for (final Command command : ast) {

@@ -18,7 +18,7 @@ public class RoutineCallStep implements CompilerStep<StepData<Command.RoutineCal
 
         final Label label0 = new Label();
         methodVisitor.visitLabel(label0);
-        methodVisitor.visitLineNumber(obj.data().getOrigin().getLine(), label0);
+        methodVisitor.visitLineNumber(obj.data().getOrigin().fromLineNum(), label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, settings.getMainClassName(), "routine_" + obj.data().getRoutineName(), "()V", false);
     }

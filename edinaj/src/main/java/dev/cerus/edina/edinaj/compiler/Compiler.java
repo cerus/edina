@@ -4,7 +4,6 @@ import dev.cerus.edina.ast.Parser;
 import dev.cerus.edina.ast.ast.Command;
 import dev.cerus.edina.ast.ast.Visitor;
 import dev.cerus.edina.ast.token.Token;
-import dev.cerus.edina.ast.token.TokenType;
 import dev.cerus.edina.ast.token.Tokenizer;
 import dev.cerus.edina.edinaj.compiler.exception.CompilerException;
 import dev.cerus.edina.edinaj.compiler.step.CompilerStep;
@@ -187,12 +186,12 @@ public class Compiler implements Visitor<Void> {
         }
     }
 
-    public void addRoutineNames(final String... names) {
-        for (final String name : names) {
-            if (this.routineNames.contains(name)) {
-                throw new IllegalArgumentException("Routine can not be declared more than once");
+    public void addRoutineNames(final Command.RoutineDeclareCommand... declarations) {
+        for (final Command.RoutineDeclareCommand rt : declarations) {
+            if (this.routineNames.contains(rt.getRoutineName())) {
+                throw new CompilerException("Routine can not be declared more than once", rt.getOrigin());
             }
-            this.routineNames.add(name);
+            this.routineNames.add(rt.getRoutineName());
         }
     }
 
@@ -324,20 +323,8 @@ public class Compiler implements Visitor<Void> {
 
     @Override
     public Void visitFlip(final Command.FlipCommand flipCommand) {
-        this.visitPush(new Command.PushCommand(new Token(
-                flipCommand.getOrigin().getLine(),
-                flipCommand.getOrigin().getFrom(),
-                flipCommand.getOrigin().getTo(),
-                "-1",
-                TokenType.WORD
-        ), -1L));
-        this.visitXor(new Command.XorCommand(new Token(
-                flipCommand.getOrigin().getLine(),
-                flipCommand.getOrigin().getFrom(),
-                flipCommand.getOrigin().getTo(),
-                "^",
-                TokenType.XOR
-        )));
+        this.visitPush(new Command.PushCommand(flipCommand.getOrigin(), -1L));
+        this.visitXor(new Command.XorCommand(flipCommand.getOrigin()));
         return null;
     }
 
@@ -407,7 +394,7 @@ public class Compiler implements Visitor<Void> {
             subCompiler.parent = this;
             for (final Command command : commands) {
                 if (command instanceof Command.RoutineDeclareCommand decl) {
-                    subCompiler.addRoutineNames(decl.getRoutineName());
+                    subCompiler.addRoutineNames(decl);
                 }
             }
             for (final Command command : commands) {

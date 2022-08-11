@@ -18,7 +18,7 @@ public class IfStep implements CompilerStep<StepData<Command.IfCommand>> {
 
         final Label labelIfStart = new Label();
         mv.visitLabel(labelIfStart);
-        mv.visitLineNumber(obj.data().getOrigin().getLine(), labelIfStart);
+        mv.visitLineNumber(obj.data().getOrigin().fromLineNum(), labelIfStart);
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
         mv.visitMethodInsn(INVOKEVIRTUAL, settings.getStackName(), "peekLong", "()J", false);
@@ -35,8 +35,8 @@ public class IfStep implements CompilerStep<StepData<Command.IfCommand>> {
 
         final Label labelIfBody = new Label();
         mv.visitLabel(labelIfBody);
-        mv.visitLineNumber(obj.data().getIfBody().isEmpty() ? obj.data().getOrigin().getLine()
-                : obj.data().getIfBody().get(0).getOrigin().getLine(), labelIfBody);
+        mv.visitLineNumber(obj.data().getIfBody().isEmpty() ? obj.data().getOrigin().fromLineNum()
+                : obj.data().getIfBody().get(0).getOrigin().fromLineNum(), labelIfBody);
         for (final Command command : obj.data().getIfBody()) {
             obj.compiler().visit(command);
         }
@@ -45,15 +45,15 @@ public class IfStep implements CompilerStep<StepData<Command.IfCommand>> {
         mv.visitJumpInsn(GOTO, labelIfEnd);
 
         mv.visitLabel(labelElse);
-        mv.visitLineNumber(obj.data().getElseBody().isEmpty() ? obj.data().getOrigin().getLine()
-                : obj.data().getElseBody().get(0).getOrigin().getLine(), labelElse);
+        mv.visitLineNumber(obj.data().getElseBody().isEmpty() ? obj.data().getOrigin().fromLineNum()
+                : obj.data().getElseBody().get(0).getOrigin().fromLineNum(), labelElse);
         mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         for (final Command command : obj.data().getElseBody()) {
             obj.compiler().visit(command);
         }
 
         mv.visitLabel(labelIfEnd);
-        mv.visitLineNumber(obj.data().getOrigin().getLine(), labelIfEnd);
+        mv.visitLineNumber(obj.data().getOrigin().fromLineNum(), labelIfEnd);
         mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
     }
 

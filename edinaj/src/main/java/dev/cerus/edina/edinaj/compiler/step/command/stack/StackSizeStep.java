@@ -17,7 +17,7 @@ public class StackSizeStep implements CompilerStep<StepData<Command.StackSizeCom
 
         final Label label0 = new Label();
         methodVisitor.visitLabel(label0);
-        methodVisitor.visitLineNumber(obj.data().getOrigin().getLine(), label0);
+        methodVisitor.visitLineNumber(obj.data().getOrigin().fromLineNum(), label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
         methodVisitor.visitVarInsn(ALOAD, 0);

@@ -35,7 +35,7 @@ public class Parser {
         while (this.tokenNum < this.tokens.size()) {
             final Command command = this.parseCommand();
             if (command == null) {
-                throw new ParseException("Unknown token", new Token(0, 0, 1, "", null));
+                throw new UnsupportedOperationException();
             }
             if (!(command instanceof Command.ImportCommand)) {
                 this.importAllowed = false;
@@ -51,18 +51,18 @@ public class Parser {
             case DOT -> this.parseRoutineCall();
             case QUOTATION -> this.parseStringPush();
             case WORD -> this.parseWord();
-            case PLUS -> new Command.PlusCommand(this.pop());
-            case MINUS -> new Command.MinusCommand(this.pop());
-            case DIV -> new Command.DivideCommand(this.pop());
-            case MULT -> new Command.MultiplyCommand(this.pop());
-            case MODULO -> new Command.ModuloCommand(this.pop());
-            case AND -> new Command.AndCommand(this.pop());
-            case OR -> new Command.OrCommand(this.pop());
-            case XOR -> new Command.XorCommand(this.pop());
-            case FLIP -> new Command.FlipCommand(this.pop());
+            case PLUS -> new Command.PlusCommand(this.pop().getLocation());
+            case MINUS -> new Command.MinusCommand(this.pop().getLocation());
+            case DIV -> new Command.DivideCommand(this.pop().getLocation());
+            case MULT -> new Command.MultiplyCommand(this.pop().getLocation());
+            case MODULO -> new Command.ModuloCommand(this.pop().getLocation());
+            case AND -> new Command.AndCommand(this.pop().getLocation());
+            case OR -> new Command.OrCommand(this.pop().getLocation());
+            case XOR -> new Command.XorCommand(this.pop().getLocation());
+            case FLIP -> new Command.FlipCommand(this.pop().getLocation());
             case COLON -> this.parseImportCall();
             case SQUARE_BRACKET_OPEN -> this.parseRoutineAnnotation();
-            default -> throw new ParseException("Unexpected token", token);
+            default -> throw new ParseException("Unexpected token", token.getLocation());
         };
     }
 
@@ -75,19 +75,19 @@ public class Parser {
             final Map.Entry<String, Object> elem = this.parseRoutineAnnotationElement();
             elements.put(elem.getKey(), elem.getValue());
         }
-        this.pop();
+        final Token end = this.pop();
 
         // Look ahead for the routine this is attached to
-        if (this.peek().getType() != TokenType.WORD || !this.peek().getValue().equals("rt")) {
-            throw new ParseException("Routine annotations can only be declared before routines", this.pop());
+        if (this.tokenNum >= this.tokens.size() || this.peek().getType() != TokenType.WORD || !this.peek().getValue().equals("rt")) {
+            throw new ParseException("Routine annotations can only be declared before routines", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
         }
         if (this.tokenNum >= this.tokens.size() - 1 || this.tokens.get(this.tokenNum + 1).getType() != TokenType.WORD) {
             // Definitely invalid
-            throw new ParseException("Unable to determine routine name for annotation", start);
+            throw new ParseException("Unable to determine routine name for annotation", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
         }
 
         final String routineName = this.tokens.get(this.tokenNum + 2).getValue();
-        return new Command.RoutineAnnotationCommand(start, routineName, elements);
+        return new Command.RoutineAnnotationCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), routineName, elements);
     }
 
     private Map.Entry<String, Object> parseRoutineAnnotationElement() {
@@ -140,7 +140,7 @@ public class Parser {
             throw new ParseException("Expected WORD, found " + this.pop().getType(), this.prev());
         }
         final String routineName = this.pop().getValue();
-        return new Command.ImportCallCommand(start, importName, routineName);
+        return new Command.ImportCallCommand(start.getLocation().combineWith(this.sourceLines, this.prev().getLocation()), importName, routineName);
     }
 
     private Command parseRoutineCall() {
@@ -154,7 +154,7 @@ public class Parser {
             throw new ParseException("Routine name must match [a-zA-Z_]+\\w+", nameToken);
         }
         final String rtName = nameToken.getValue();
-        return new Command.RoutineCallCommand(new Token(origin.getLine(), origin.getFrom(), nameToken.getTo(), "." + nameToken.getValue(), TokenType.WORD), rtName);
+        return new Command.RoutineCallCommand(origin.getLocation().combineWith(this.sourceLines, nameToken.getLocation()), rtName);
     }
 
     private Command parseStringPush() {
@@ -166,13 +166,13 @@ public class Parser {
             end = this.pop();
         }
 
-        if (start.getLine() != end.getLine()) {
-            throw new ParseException("Multiline strings are not supported", end);
+        if (start.getLocation().fromLineNum() != end.getLocation().toLineNum()) {
+            throw new ParseException("Multiline strings are not supported", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
         }
 
-        String str = this.sourceLines.get(start.getLine() - 1).substring(
-                start.getFrom() + 1,
-                end.getTo() - 1
+        String str = start.getLocation().firstLine().substring(
+                start.getLocation().from() + 1,
+                end.getLocation().to() - 1
         );
 
         int i = 0;
@@ -201,7 +201,7 @@ public class Parser {
             i++;
         }
 
-        return new Command.PushCommand(new Token(start.getLine(), start.getFrom(), end.getTo(), "\"" + str + "\"", TokenType.WORD), str);
+        return new Command.PushCommand(start.getLocation().combineWith(end.getLocation()), str);
     }
 
     private Command parseWord() {
@@ -217,14 +217,14 @@ public class Parser {
         } else {
             return switch (word.getValue()) {
                 case "rt" -> this.parseRoutineDeclare();
-                case "pop" -> new Command.PopCommand(word);
-                case "dup" -> new Command.DupCommand(word);
-                case "swap" -> new Command.SwapCommand(word);
-                case "over" -> new Command.OverCommand(word);
-                case "lroll" -> new Command.RollLeftCommand(word);
-                case "rroll" -> new Command.RollRightCommand(word);
-                case "end" -> new Command.EndCommand(word);
-                case "ssize" -> new Command.StackSizeCommand(word);
+                case "pop" -> new Command.PopCommand(word.getLocation());
+                case "dup" -> new Command.DupCommand(word.getLocation());
+                case "swap" -> new Command.SwapCommand(word.getLocation());
+                case "over" -> new Command.OverCommand(word.getLocation());
+                case "lroll" -> new Command.RollLeftCommand(word.getLocation());
+                case "rroll" -> new Command.RollRightCommand(word.getLocation());
+                case "end" -> new Command.EndCommand(word.getLocation());
+                case "ssize" -> new Command.StackSizeCommand(word.getLocation());
                 case "ifn", "ifz", "ifgt", "iflt" -> this.parseIf();
                 case "import" -> this.parseImport();
                 case "while", "until" -> this.parseLoop();
@@ -250,8 +250,9 @@ public class Parser {
             }
             body.add(next);
         }
+        final Token end = this.prev();
 
-        return new Command.LoopCommand(start, type, body);
+        return new Command.LoopCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), type, body);
     }
 
     private Command parseImport() {
@@ -283,8 +284,9 @@ public class Parser {
                 throw new ParseException("Unexpected import name", this.prev());
             }
         }
+        final Token end = this.prev();
 
-        return new Command.ImportCommand(start, importPath, name);
+        return new Command.ImportCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), importPath, name);
     }
 
     private Command parseIf() {
@@ -317,8 +319,10 @@ public class Parser {
                 this.pop();
             }
         }
+        final Token end = this.prev();
 
-        return new Command.IfCommand(start, ifBody, elseBody, Command.IfCommand.Type.valueOf(start.getValue().toUpperCase()));
+        return new Command.IfCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()),
+                ifBody, elseBody, Command.IfCommand.Type.valueOf(start.getValue().toUpperCase()));
     }
 
     private Command parseNativeCall(final Token word) {
@@ -329,7 +333,7 @@ public class Parser {
         } catch (final Exception igored) {
             throw new ParseException("Unknown native call", word);
         }
-        return new Command.NativeCallCommand(word, nativeType);
+        return new Command.NativeCallCommand(word.getLocation(), nativeType);
     }
 
     private Command parseRoutineDeclare() {
@@ -353,7 +357,7 @@ public class Parser {
             body.add(next);
         }
 
-        return new Command.RoutineDeclareCommand(origin, rtName, body);
+        return new Command.RoutineDeclareCommand(origin.getLocation().combineWith(this.sourceLines, this.prev().getLocation()), rtName, body);
     }
 
     private Command parseLongPush() {
@@ -364,25 +368,10 @@ public class Parser {
             prev = this.pop();
         }
         try {
-            return new Command.PushCommand(prev, Long.parseLong((negative ? "-" : "") + prev.getValue()));
+            return new Command.PushCommand(prev.getLocation().combineWith(this.prev().getLocation()),
+                    Long.parseLong((negative ? "-" : "") + prev.getValue()));
         } catch (final NumberFormatException ex) {
-            throw new ParseException("Failed to parse long: " + ex.getMessage(), prev);
-        }
-    }
-
-    private Command parseDoublePush() {
-        boolean negative = false;
-        Token prev = this.prev();
-        if (prev.getType() == TokenType.MINUS) {
-            negative = true;
-            prev = this.pop();
-        }
-        try {
-            this.pop();
-            final Token end = this.pop();
-            return new Command.PushCommand(prev, Double.parseDouble((negative ? "-" : "") + prev.getValue() + "." + end.getValue()));
-        } catch (final NumberFormatException ex) {
-            throw new ParseException("Failed to parse double: " + ex.getMessage(), prev);
+            throw new ParseException("Failed to parse long", ex, prev.getLocation().combineWith(this.prev().getLocation()));
         }
     }
 

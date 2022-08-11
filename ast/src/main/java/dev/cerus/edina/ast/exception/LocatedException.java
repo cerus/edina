@@ -1,0 +1,121 @@
+package dev.cerus.edina.ast.exception;
+
+import dev.cerus.edina.ast.token.Location;
+import java.util.Arrays;
+import org.fusesource.jansi.Ansi;
+import static org.fusesource.jansi.Ansi.Color.WHITE;
+import static org.fusesource.jansi.Ansi.ansi;
+import org.fusesource.jansi.AnsiConsole;
+import org.fusesource.jansi.AnsiPrintStream;
+
+/**
+ * Base class for ast exceptions
+ */
+public abstract class LocatedException extends RuntimeException {
+
+    private final Location location;
+
+    public LocatedException(final String message, final Location location) {
+        super(message);
+        this.location = location;
+    }
+
+    public LocatedException(final String message, final Throwable cause, final Location location) {
+        super(message, cause);
+        this.location = location;
+    }
+
+    /**
+     * Print the error details in a nice human-readable fashion
+     */
+    public void printDetailedError() {
+        final AnsiPrintStream stdOut = AnsiConsole.out();
+
+        // Separator
+        stdOut.println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+
+        // Print msg and causes
+        stdOut.println(ansi()
+                .fgBrightRed()
+                .a(Ansi.Attribute.INTENSITY_BOLD)
+                .a(this.getMessage()).reset());
+        Throwable cause = this.getCause();
+        while (cause != null) {
+            System.out.println(" Caused by: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
+            cause = cause.getCause();
+        }
+        System.out.println();
+
+        // Print affected lines
+        if (this.location.lines().length >= 1) {
+            final int startLen = this.location.firstLine().length();
+            for (int li = 0; li < this.location.lines().length; li++) {
+                final String line = this.location.lines()[li];
+                final boolean start = li == 0;
+                final boolean end = li == this.location.lines().length - 1;
+                final String lineNumTxt = String.format("L%-3s", (li + this.location.fromLineNum()));
+
+                // Initialize the text we're going to print
+                Ansi ansiLine = ansi()
+                        .bgRgb(100, 100, 100) // Light gray background
+                        .fgRgb(255, 255, 255) // Black foreground
+                        .a(lineNumTxt) // Formatted line number
+                        .reset()
+                        .a("    ");
+                if (start && end) {
+                    // Start and end of the error is in this line
+                    ansiLine = ansiLine.a(line.substring(0, this.location.from())) // First part of string is not part of the error, print normally
+                            .bgBrightRed() // Red background
+                            .fg(WHITE) // White foreground
+                            .a(line.substring(this.location.from(), this.location.to())) // This part of string is part of the error, print red
+                            .reset() // Reset everything
+                            .a(line.substring(this.location.to())); // Last part of string is not part of error, print normally
+                    ansiLine = ansiLine.reset().newline()
+                            .a(" ".repeat(lineNumTxt.length() + 4 + this.location.from()))
+                            .fg(Ansi.Color.RED)
+                            .a("^".repeat(this.location.to() - this.location.from()));
+                } else if (start) {
+                    // Start of the error is in this line
+                    ansiLine = ansiLine.a(line.substring(0, this.location.from())) // First part of string is not part of the error, print normally
+                            .bgBrightRed() // Red background
+                            .fg(WHITE) // White foreground
+                            .a(line.substring(this.location.from())); // This part of string is part of the error, print red
+                } else if (end) {
+                    // End of the error is in this line
+                    ansiLine = ansiLine.bgBrightRed() // Red background
+                            .fg(WHITE) // White foreground
+                            .a(line.substring(0, this.location.to())) // This part of string is part of the error, print red
+                            .reset() // Reset everything
+                            .a(line.substring(this.location.to())); // Last part of string is not part of error, print normally
+
+                    int len = Arrays.stream(this.location.lines(), 1, this.location.lines().length - 1)
+                            .mapToInt(String::length)
+                            .max()
+                            .orElse(1);
+                    len = Math.max(len, Math.max(this.location.firstLine().length(), this.location.to()));
+                    ansiLine = ansiLine.reset().newline()
+                            .a(" ".repeat(lineNumTxt.length() + 4))
+                            .fg(Ansi.Color.RED)
+                            .a("^".repeat(len));
+                } else {
+                    // Whole line is erroneous
+                    ansiLine = ansiLine.bgBrightRed().fg(WHITE).a(line); // Print line in red
+                    if (line.length() < startLen) {
+                        ansiLine = ansiLine.a(" ".repeat(startLen - line.length())); // Pad with space to match start line
+                    }
+                    ansiLine = ansiLine.reset();
+                }
+                // Print our constructed line
+                stdOut.println(ansiLine.reset());
+            }
+        }
+
+        // Separator
+        stdOut.println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+    }
+
+    public Location getLocation() {
+        return this.location;
+    }
+
+}

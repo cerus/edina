@@ -18,7 +18,7 @@ public class PushStep implements CompilerStep<StepData<Command.PushCommand>> {
 
         final Label label0 = new Label();
         methodVisitor.visitLabel(label0);
-        methodVisitor.visitLineNumber(obj.data().getOrigin().getLine(), label0);
+        methodVisitor.visitLineNumber(obj.data().getOrigin().fromLineNum(), label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
         if (parsedValue instanceof Integer i) {

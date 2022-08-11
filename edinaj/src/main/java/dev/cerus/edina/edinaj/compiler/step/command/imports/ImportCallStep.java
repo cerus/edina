@@ -17,7 +17,7 @@ public class ImportCallStep implements CompilerStep<StepData<ImportCallStep.Data
 
         final Label label0 = new Label();
         methodVisitor.visitLabel(label0);
-        methodVisitor.visitLineNumber(obj.data().cmd.getOrigin().getLine(), label0);
+        methodVisitor.visitLineNumber(obj.data().cmd.getOrigin().fromLineNum(), label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "imp_" + obj.data().cmd.getImportName(), "L" + obj.data().fullClassName + ";");
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, obj.data().fullClassName, "routine_" + obj.data().cmd.getRoutineName(), "()V", false);

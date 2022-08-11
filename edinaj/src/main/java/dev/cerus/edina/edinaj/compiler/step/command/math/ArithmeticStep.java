@@ -23,7 +23,7 @@ public class ArithmeticStep implements CompilerStep<StepData<Command>> {
 
         final Label label = new Label();
         methodVisitor.visitLabel(label);
-        methodVisitor.visitLineNumber(obj.data().getOrigin().getLine(), label);
+        methodVisitor.visitLineNumber(obj.data().getOrigin().fromLineNum(), label);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
         methodVisitor.visitVarInsn(ALOAD, 0);

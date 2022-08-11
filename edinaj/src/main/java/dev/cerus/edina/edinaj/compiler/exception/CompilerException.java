@@ -1,54 +1,35 @@
 package dev.cerus.edina.edinaj.compiler.exception;
 
 import dev.cerus.edina.ast.ast.Command;
+import dev.cerus.edina.ast.exception.LocatedException;
+import dev.cerus.edina.ast.token.Location;
 
-public class CompilerException extends RuntimeException {
+/**
+ * Called when an error occurs during compilation
+ */
+public class CompilerException extends LocatedException {
 
-    private final Command culprit;
-
-    public CompilerException(final Command culprit) {
-        super("Error during script compilation: '" + culprit.getOrigin().getValue() + "' in line " + culprit.getOrigin().getLine()
-                + " (" + culprit.getOrigin().getFrom() + ", " + culprit.getOrigin().getTo() + ")");
-        this.culprit = culprit;
+    public CompilerException(final Command cmd, final String msg) {
+        this(msg, cmd.getOrigin());
     }
 
-    public CompilerException(final Command culprit, final String msg) {
-        super("Error during script compilation: '" + culprit.getOrigin().getValue() + "' in line " + culprit.getOrigin().getLine()
-                + " (" + culprit.getOrigin().getFrom() + ", " + culprit.getOrigin().getTo() + "): " + msg);
-        this.culprit = culprit;
+    public CompilerException(final Command cmd, final Throwable cause, final String msg) {
+        this(msg, cause, cmd.getOrigin());
     }
 
-    public CompilerException(final Command culprit, final Throwable t, final String msg) {
-        super("Error during script compilation: '" + culprit.getOrigin().getValue() + "' in line " + culprit.getOrigin().getLine()
-                + " (" + culprit.getOrigin().getFrom() + ", " + culprit.getOrigin().getTo() + "): " + msg + ": " + t.getMessage(), t);
-        this.culprit = culprit;
+    public CompilerException(final String message, final Location location) {
+        super(message, location);
     }
 
+    public CompilerException(final String message, final Throwable cause, final Location location) {
+        super(message, cause, location);
+    }
+
+    @Override
     public void printDetailedError() {
-        System.out.println(this.getMessage());
         System.out.println();
-        if (this.getCause() != null) {
-            Throwable cause = this;
-            while ((cause = cause.getCause()) != null) {
-                System.out.println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
-            }
-            System.out.println();
-        }
-        if (this.culprit != null) {
-            System.out.println("   " + this.culprit.getOrigin().getValue());
-            if (this.culprit.getOrigin().getValue().length() > 0) {
-                if (this.culprit.getOrigin().getValue().length() == 1) {
-                    System.out.println("   ^");
-                } else {
-                    System.out.println("   ^" + "-".repeat(this.culprit.getOrigin().getValue().length() - 2) + "^");
-                }
-            }
-            System.out.println();
-        }
-    }
-
-    public Command getCulprit() {
-        return this.culprit;
+        super.printDetailedError();
+        System.out.println();
     }
 
 }

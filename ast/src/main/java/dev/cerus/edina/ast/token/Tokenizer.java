@@ -72,7 +72,7 @@ public class Tokenizer {
                 end++;
             }
             this.charNum--;
-            return Token.of(TokenType.WORD, this.lineNum, start, end, builder.toString());
+            return Token.of(TokenType.WORD, this.lineNum, this.lines.get(this.lineNum - 1), start, end, builder.toString());
         } else {
             return null;
         }
@@ -93,7 +93,7 @@ public class Tokenizer {
         if (type == TokenType.MINUS && this.charNum < this.line.length - 1 && Character.isDigit(this.line[this.charNum + 1])) {
             return null;
         }
-        return Token.of(type, this.lineNum, this.charNum, this.charNum + 1, String.valueOf(c));
+        return Token.of(type, this.lineNum, this.lines.get(this.lineNum - 1), this.charNum, this.charNum + 1, String.valueOf(c));
     }
 
     /**

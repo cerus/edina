@@ -19,7 +19,7 @@ public class LoopStep implements CompilerStep<StepData<Command.LoopCommand>> {
         // Before loop
         final Label labelLoopStart = new Label();
         mv.visitLabel(labelLoopStart);
-        mv.visitLineNumber(obj.data().getOrigin().getLine(), labelLoopStart);
+        mv.visitLineNumber(obj.data().getOrigin().fromLineNum(), labelLoopStart);
         mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
@@ -35,8 +35,8 @@ public class LoopStep implements CompilerStep<StepData<Command.LoopCommand>> {
         // Loop content start
         final Label labelLoopContent = new Label();
         mv.visitLabel(labelLoopContent);
-        mv.visitLineNumber(obj.data().getBody().isEmpty() ? obj.data().getOrigin().getLine()
-                : obj.data().getBody().get(0).getOrigin().getLine(), labelLoopContent);
+        mv.visitLineNumber(obj.data().getBody().isEmpty() ? obj.data().getOrigin().fromLineNum()
+                : obj.data().getBody().get(0).getOrigin().fromLineNum(), labelLoopContent);
         for (final Command command : obj.data().getBody()) {
             obj.compiler().visit(command);
         }
@@ -45,8 +45,8 @@ public class LoopStep implements CompilerStep<StepData<Command.LoopCommand>> {
 
         // After loop
         mv.visitLabel(labelLoopAfter);
-        mv.visitLineNumber(obj.data().getBody().isEmpty() ? obj.data().getOrigin().getLine()
-                : obj.data().getBody().get(obj.data().getBody().size() - 1).getOrigin().getLine(), labelLoopAfter);
+        mv.visitLineNumber(obj.data().getBody().isEmpty() ? obj.data().getOrigin().fromLineNum()
+                : obj.data().getBody().get(obj.data().getBody().size() - 1).getOrigin().fromLineNum(), labelLoopAfter);
         mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
     }
 

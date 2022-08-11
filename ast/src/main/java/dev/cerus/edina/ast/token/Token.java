@@ -5,38 +5,30 @@ package dev.cerus.edina.ast.token;
  */
 public class Token {
 
-    private final int line;
-    private final int from;
-    private final int to;
+    private final Location location;
     private final String value;
     private final TokenType type;
 
-    public Token(final int line, final int from, final int to, final String value, final TokenType type) {
-        this.line = line;
-        this.from = from;
-        this.to = to;
+    public Token(final Location location, final String value, final TokenType type) {
+        this.location = location;
         this.value = value;
         this.type = type;
     }
 
     public static Token of(final TokenType type, final int lineNum, final String line, final int from, final int to) {
-        return new Token(lineNum, from, to, line.substring(from, to), type);
+        return new Token(Location.singleLine(line, lineNum, from, to), line.substring(from, to), type);
     }
 
-    public static Token of(final TokenType type, final int lineNum, final int from, final int to, final String val) {
-        return new Token(lineNum, from, to, val, type);
+    public static Token of(final TokenType type, final int lineNum, final String line, final int from, final int to, final String val) {
+        return new Token(Location.singleLine(line, lineNum, from, to), val, type);
+    }
+
+    public Location getLocation() {
+        return this.location;
     }
 
     public int getLine() {
-        return this.line;
-    }
-
-    public int getFrom() {
-        return this.from;
-    }
-
-    public int getTo() {
-        return this.to;
+        return this.getLocation().fromLineNum();
     }
 
     public String getValue() {

@@ -1,6 +1,6 @@
 package dev.cerus.edina.ast.ast;
 
-import dev.cerus.edina.ast.token.Token;
+import dev.cerus.edina.ast.token.Location;
 import java.util.List;
 import java.util.Map;
 
@@ -9,13 +9,13 @@ import java.util.Map;
  */
 public abstract class Command implements Visitable {
 
-    private final Token origin;
+    private final Location origin;
 
-    public Command(final Token origin) {
+    public Command(final Location origin) {
         this.origin = origin;
     }
 
-    public Token getOrigin() {
+    public Location getOrigin() {
         return this.origin;
     }
 
@@ -35,7 +35,7 @@ public abstract class Command implements Visitable {
 
         private final Object parsedValue;
 
-        public PushCommand(final Token origin, final Object parsedValue) {
+        public PushCommand(final Location origin, final Object parsedValue) {
             super(origin);
             this.parsedValue = parsedValue;
         }
@@ -62,7 +62,7 @@ public abstract class Command implements Visitable {
      */
     public static class PopCommand extends Command {
 
-        public PopCommand(final Token origin) {
+        public PopCommand(final Location origin) {
             super(origin);
         }
 
@@ -84,7 +84,7 @@ public abstract class Command implements Visitable {
      */
     public static class DupCommand extends Command {
 
-        public DupCommand(final Token origin) {
+        public DupCommand(final Location origin) {
             super(origin);
         }
 
@@ -106,7 +106,7 @@ public abstract class Command implements Visitable {
      */
     public static class SwapCommand extends Command {
 
-        public SwapCommand(final Token origin) {
+        public SwapCommand(final Location origin) {
             super(origin);
         }
 
@@ -128,7 +128,7 @@ public abstract class Command implements Visitable {
      */
     public static class OverCommand extends Command {
 
-        public OverCommand(final Token origin) {
+        public OverCommand(final Location origin) {
             super(origin);
         }
 
@@ -156,7 +156,7 @@ public abstract class Command implements Visitable {
      */
     public static class RollLeftCommand extends Command {
 
-        public RollLeftCommand(final Token origin) {
+        public RollLeftCommand(final Location origin) {
             super(origin);
         }
 
@@ -184,7 +184,7 @@ public abstract class Command implements Visitable {
      */
     public static class RollRightCommand extends Command {
 
-        public RollRightCommand(final Token origin) {
+        public RollRightCommand(final Location origin) {
             super(origin);
         }
 
@@ -206,7 +206,7 @@ public abstract class Command implements Visitable {
 
         private final String routineName;
 
-        public RoutineCallCommand(final Token origin, final String routineName) {
+        public RoutineCallCommand(final Location origin, final String routineName) {
             super(origin);
             this.routineName = routineName;
         }
@@ -241,7 +241,7 @@ public abstract class Command implements Visitable {
         private final String routineName;
         private final List<Command> routineBody;
 
-        public RoutineDeclareCommand(final Token origin, final String routineName, final List<Command> routineBody) {
+        public RoutineDeclareCommand(final Location origin, final String routineName, final List<Command> routineBody) {
             super(origin);
             this.routineName = routineName;
             this.routineBody = routineBody;
@@ -271,7 +271,7 @@ public abstract class Command implements Visitable {
      */
     public static class EndCommand extends Command {
 
-        public EndCommand(final Token origin) {
+        public EndCommand(final Location origin) {
             super(origin);
         }
 
@@ -293,7 +293,7 @@ public abstract class Command implements Visitable {
      */
     public static class StackSizeCommand extends Command {
 
-        public StackSizeCommand(final Token origin) {
+        public StackSizeCommand(final Location origin) {
             super(origin);
         }
 
@@ -315,7 +315,7 @@ public abstract class Command implements Visitable {
      */
     public static class PlusCommand extends Command {
 
-        public PlusCommand(final Token origin) {
+        public PlusCommand(final Location origin) {
             super(origin);
         }
 
@@ -337,7 +337,7 @@ public abstract class Command implements Visitable {
      */
     public static class MinusCommand extends Command {
 
-        public MinusCommand(final Token origin) {
+        public MinusCommand(final Location origin) {
             super(origin);
         }
 
@@ -359,7 +359,7 @@ public abstract class Command implements Visitable {
      */
     public static class DivideCommand extends Command {
 
-        public DivideCommand(final Token origin) {
+        public DivideCommand(final Location origin) {
             super(origin);
         }
 
@@ -381,7 +381,7 @@ public abstract class Command implements Visitable {
      */
     public static class MultiplyCommand extends Command {
 
-        public MultiplyCommand(final Token origin) {
+        public MultiplyCommand(final Location origin) {
             super(origin);
         }
 
@@ -403,7 +403,7 @@ public abstract class Command implements Visitable {
      */
     public static class ModuloCommand extends Command {
 
-        public ModuloCommand(final Token origin) {
+        public ModuloCommand(final Location origin) {
             super(origin);
         }
 
@@ -425,7 +425,7 @@ public abstract class Command implements Visitable {
      */
     public static class AndCommand extends Command {
 
-        public AndCommand(final Token origin) {
+        public AndCommand(final Location origin) {
             super(origin);
         }
 
@@ -447,7 +447,7 @@ public abstract class Command implements Visitable {
      */
     public static class OrCommand extends Command {
 
-        public OrCommand(final Token origin) {
+        public OrCommand(final Location origin) {
             super(origin);
         }
 
@@ -469,7 +469,7 @@ public abstract class Command implements Visitable {
      */
     public static class XorCommand extends Command {
 
-        public XorCommand(final Token origin) {
+        public XorCommand(final Location origin) {
             super(origin);
         }
 
@@ -491,7 +491,7 @@ public abstract class Command implements Visitable {
      */
     public static class FlipCommand extends Command {
 
-        public FlipCommand(final Token origin) {
+        public FlipCommand(final Location origin) {
             super(origin);
         }
 
@@ -515,7 +515,7 @@ public abstract class Command implements Visitable {
 
         private final Type type;
 
-        public NativeCallCommand(final Token origin, final Type type) {
+        public NativeCallCommand(final Location origin, final Type type) {
             super(origin);
             this.type = type;
         }
@@ -575,7 +575,7 @@ public abstract class Command implements Visitable {
         private final List<Command> elseBody;
         private final Type type;
 
-        public IfCommand(final Token origin, final List<Command> ifBody, final List<Command> elseBody, final Type type) {
+        public IfCommand(final Location origin, final List<Command> ifBody, final List<Command> elseBody, final Type type) {
             super(origin);
             this.ifBody = ifBody;
             this.elseBody = elseBody;
@@ -621,7 +621,7 @@ public abstract class Command implements Visitable {
         private final String importPath;
         private final String importName;
 
-        public ImportCommand(final Token origin, final String importPath, final String importName) {
+        public ImportCommand(final Location origin, final String importPath, final String importName) {
             super(origin);
             this.importPath = importPath;
             this.importName = importName;
@@ -655,7 +655,7 @@ public abstract class Command implements Visitable {
         private final String importName;
         private final String routineName;
 
-        public ImportCallCommand(final Token origin, final String importName, final String routineName) {
+        public ImportCallCommand(final Location origin, final String importName, final String routineName) {
             super(origin);
             this.importName = importName;
             this.routineName = routineName;
@@ -696,7 +696,7 @@ public abstract class Command implements Visitable {
         private final Type type;
         private final List<Command> body;
 
-        public LoopCommand(final Token origin, final Type type, final List<Command> body) {
+        public LoopCommand(final Location origin, final Type type, final List<Command> body) {
             super(origin);
             this.type = type;
             this.body = body;
@@ -737,7 +737,7 @@ public abstract class Command implements Visitable {
         private final String routineName;
         private final Map<String, Object> elements;
 
-        public RoutineAnnotationCommand(final Token origin, final String routineName, final Map<String, Object> elements) {
+        public RoutineAnnotationCommand(final Location origin, final String routineName, final Map<String, Object> elements) {
             super(origin);
             this.routineName = routineName;
             this.elements = elements;
