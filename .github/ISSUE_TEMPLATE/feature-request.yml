@@ -5,7 +5,7 @@ body:
   - type: dropdown
     attributes:
       label: "Component"
-      options: [ "edinaj", "edinac", "eddoc", "ast", "cli", "Language", "Docs", "Other" ]
+      options: [ "edinaj", "edinac", "eddoc", "ast", "cli", "Language", "Standard library", "Docs", "Other" ]
       multiple: true
     validations:
       required: true

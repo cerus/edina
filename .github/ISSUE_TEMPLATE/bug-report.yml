@@ -29,7 +29,7 @@ body:
   - type: dropdown
     attributes:
       label: "Component"
-      options: [ "edinaj", "edinac", "eddoc", "ast", "cli", "Docs", "Other" ]
+      options: [ "edinaj", "edinac", "eddoc", "ast", "cli", "Docs", "Standard library", "Other" ]
       multiple: true
     validations:
       required: true
