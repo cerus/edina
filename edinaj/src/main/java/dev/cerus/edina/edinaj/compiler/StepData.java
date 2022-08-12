@@ -13,9 +13,9 @@ import org.objectweb.asm.MethodVisitor;
  * @param data          The actual data
  * @param <T>           The type of the data
  */
-public record StepData<T>(ClassVisitor classVisitor, MethodVisitor methodVisitor, Compiler compiler, CompilerSettings settings, T data) {
+public record StepData<T>(ClassVisitor classVisitor, MethodVisitor methodVisitor, CompilerBase compiler, CompilerSettings settings, T data) {
 
-    public StepData(final ClassVisitor classVisitor, final MethodVisitor methodVisitor, final Compiler compiler, final CompilerSettings settings, final T data) {
+    public StepData(final ClassVisitor classVisitor, final MethodVisitor methodVisitor, final CompilerBase compiler, final CompilerSettings settings, final T data) {
         this.classVisitor = classVisitor;
         this.methodVisitor = methodVisitor;
         this.compiler = compiler;

@@ -36,11 +36,12 @@ public class ConstructorStep implements CompilerStep<StepData<Void>> {
         mv.visitVarInsn(ALOAD, 2);
         mv.visitFieldInsn(PUTFIELD, settings.getMainClassName(), "natives", "L" + settings.getNativesName() + ";");
 
-        List<String> refs = new ArrayList<>(obj.compiler().getReferencedClasses().keySet());
-        refs.addAll(obj.compiler().getReferenceNames().keySet());
+        List<String> refs = new ArrayList<>(obj.compiler().getCompilerEnv().getClassMap().keySet());
+        refs.addAll(obj.compiler().getCompilerEnv().getJavaPathToImportNameMap().keySet());
         refs = refs.stream().distinct().collect(Collectors.toList());
         for (final String ref : refs) {
-            final String refName = obj.compiler().getReferenceNames().get(ref);
+            final String refName = obj.compiler().getCompilerEnv()
+                    .getJavaPathToImportNameMap().get(ref);
             if (refName == null) {
                 continue;
             }
