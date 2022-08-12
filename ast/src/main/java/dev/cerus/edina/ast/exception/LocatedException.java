@@ -47,13 +47,14 @@ public abstract class LocatedException extends RuntimeException {
         System.out.println();
 
         // Print affected lines
-        if (this.location.lines().length >= 1) {
-            final int startLen = this.location.firstLine().length();
-            for (int li = 0; li < this.location.lines().length; li++) {
-                final String line = this.location.lines()[li];
+        stdOut.println(ansi().a(Ansi.Attribute.ITALIC).a("File " + this.loc().fileName() + ":").reset());
+        if (this.loc().lines().length >= 1) {
+            final int startLen = this.loc().firstLine().length();
+            for (int li = 0; li < this.loc().lines().length; li++) {
+                final String line = this.loc().lines()[li];
                 final boolean start = li == 0;
-                final boolean end = li == this.location.lines().length - 1;
-                final String lineNumTxt = String.format("L%-3s", (li + this.location.fromLineNum()));
+                final boolean end = li == this.loc().lines().length - 1;
+                final String lineNumTxt = String.format("L%-3s", (li + this.loc().fromLineNum()));
 
                 // Initialize the text we're going to print
                 Ansi ansiLine = ansi()
@@ -64,35 +65,35 @@ public abstract class LocatedException extends RuntimeException {
                         .a("    ");
                 if (start && end) {
                     // Start and end of the error is in this line
-                    ansiLine = ansiLine.a(line.substring(0, this.location.from())) // First part of string is not part of the error, print normally
+                    ansiLine = ansiLine.a(line.substring(0, this.loc().from())) // First part of string is not part of the error, print normally
                             .bgBrightRed() // Red background
                             .fg(WHITE) // White foreground
-                            .a(line.substring(this.location.from(), this.location.to())) // This part of string is part of the error, print red
+                            .a(line.substring(this.loc().from(), this.loc().to())) // This part of string is part of the error, print red
                             .reset() // Reset everything
-                            .a(line.substring(this.location.to())); // Last part of string is not part of error, print normally
+                            .a(line.substring(this.loc().to())); // Last part of string is not part of error, print normally
                     ansiLine = ansiLine.reset().newline()
-                            .a(" ".repeat(lineNumTxt.length() + 4 + this.location.from()))
+                            .a(" ".repeat(lineNumTxt.length() + 4 + this.loc().from()))
                             .fg(Ansi.Color.RED)
-                            .a("^".repeat(this.location.to() - this.location.from()));
+                            .a("^".repeat(this.loc().to() - this.loc().from()));
                 } else if (start) {
                     // Start of the error is in this line
-                    ansiLine = ansiLine.a(line.substring(0, this.location.from())) // First part of string is not part of the error, print normally
+                    ansiLine = ansiLine.a(line.substring(0, this.loc().from())) // First part of string is not part of the error, print normally
                             .bgBrightRed() // Red background
                             .fg(WHITE) // White foreground
-                            .a(line.substring(this.location.from())); // This part of string is part of the error, print red
+                            .a(line.substring(this.loc().from())); // This part of string is part of the error, print red
                 } else if (end) {
                     // End of the error is in this line
                     ansiLine = ansiLine.bgBrightRed() // Red background
                             .fg(WHITE) // White foreground
-                            .a(line.substring(0, this.location.to())) // This part of string is part of the error, print red
+                            .a(line.substring(0, this.loc().to())) // This part of string is part of the error, print red
                             .reset() // Reset everything
-                            .a(line.substring(this.location.to())); // Last part of string is not part of error, print normally
+                            .a(line.substring(this.loc().to())); // Last part of string is not part of error, print normally
 
-                    int len = Arrays.stream(this.location.lines(), 1, this.location.lines().length - 1)
+                    int len = Arrays.stream(this.loc().lines(), 1, this.loc().lines().length - 1)
                             .mapToInt(String::length)
                             .max()
                             .orElse(1);
-                    len = Math.max(len, Math.max(this.location.firstLine().length(), this.location.to()));
+                    len = Math.max(len, Math.max(this.loc().firstLine().length(), this.loc().to()));
                     ansiLine = ansiLine.reset().newline()
                             .a(" ".repeat(lineNumTxt.length() + 4))
                             .fg(Ansi.Color.RED)
@@ -112,6 +113,10 @@ public abstract class LocatedException extends RuntimeException {
 
         // Separator
         stdOut.println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+    }
+
+    private Location loc() {
+        return this.getLocation();
     }
 
     public Location getLocation() {

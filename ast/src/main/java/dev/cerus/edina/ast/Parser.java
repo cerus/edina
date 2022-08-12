@@ -1,7 +1,7 @@
 package dev.cerus.edina.ast;
 
 import dev.cerus.edina.ast.ast.Command;
-import dev.cerus.edina.ast.exception.ParseException;
+import dev.cerus.edina.ast.exception.ParserException;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.TokenType;
 import java.util.ArrayList;
@@ -14,12 +14,14 @@ import java.util.Map;
  */
 public class Parser {
 
+    private final String fileName;
     private final List<String> sourceLines;
     private final List<Token> tokens;
     private int tokenNum;
     private boolean importAllowed;
 
-    public Parser(final List<String> sourceLines, final List<Token> tokens) {
+    public Parser(final String fileName, final List<String> sourceLines, final List<Token> tokens) {
+        this.fileName = fileName;
         this.sourceLines = sourceLines;
         this.tokens = tokens;
     }
@@ -62,7 +64,7 @@ public class Parser {
             case FLIP -> new Command.FlipCommand(this.pop().getLocation());
             case COLON -> this.parseImportCall();
             case SQUARE_BRACKET_OPEN -> this.parseRoutineAnnotation();
-            default -> throw new ParseException("Unexpected token", token.getLocation());
+            default -> throw new ParserException("Unexpected token", token.getLocation());
         };
     }
 
@@ -79,27 +81,30 @@ public class Parser {
 
         // Look ahead for the routine this is attached to
         if (this.tokenNum >= this.tokens.size() || this.peek().getType() != TokenType.WORD || !this.peek().getValue().equals("rt")) {
-            throw new ParseException("Routine annotations can only be declared before routines", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
+            throw new ParserException("Routine annotations can only be declared before routines",
+                    start.getLocation().combineWith(this.fileName, this.sourceLines, end.getLocation()));
         }
         if (this.tokenNum >= this.tokens.size() - 1 || this.tokens.get(this.tokenNum + 1).getType() != TokenType.WORD) {
             // Definitely invalid
-            throw new ParseException("Unable to determine routine name for annotation", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
+            throw new ParserException("Unable to determine routine name for annotation",
+                    start.getLocation().combineWith(this.fileName, this.sourceLines, end.getLocation()));
         }
 
         final String routineName = this.tokens.get(this.tokenNum + 2).getValue();
-        return new Command.RoutineAnnotationCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), routineName, elements);
+        return new Command.RoutineAnnotationCommand(start.getLocation()
+                .combineWith(this.fileName, this.sourceLines, end.getLocation()), routineName, elements);
     }
 
     private Map.Entry<String, Object> parseRoutineAnnotationElement() {
         final Token key = this.pop();
         if (key.getType() != TokenType.WORD) {
-            throw new ParseException("Expected WORD, got " + key.getType(), key);
+            throw new ParserException("Expected WORD, got " + key.getType(), key);
         }
         if (!key.getValue().matches("\\w+")) {
-            throw new ParseException("Annotation element key can only contain letters, digits and underscores", key);
+            throw new ParserException("Annotation element key can only contain letters, digits and underscores", key);
         }
         if (this.pop().getType() != TokenType.EQUALS) {
-            throw new ParseException("Expected EQUALS, got " + this.prev().getType(), this.prev());
+            throw new ParserException("Expected EQUALS, got " + this.prev().getType(), this.prev());
         }
 
         final String keyStr = key.getValue();
@@ -121,7 +126,7 @@ public class Parser {
             // Complex string
             value = ((Command.PushCommand) this.parseStringPush()).getParsedValue();
         } else {
-            throw new ParseException("Expected container or string, got " + this.peek().getType(), this.pop());
+            throw new ParserException("Expected container or string, got " + this.peek().getType(), this.pop());
         }
         return Map.entry(keyStr, value);
     }
@@ -129,18 +134,19 @@ public class Parser {
     private Command parseImportCall() {
         final Token start = this.pop();
         if (this.peek().getType() != TokenType.WORD) {
-            throw new ParseException("Expected WORD, found " + this.pop().getType(), this.prev());
+            throw new ParserException("Expected WORD, found " + this.pop().getType(), this.prev());
         }
         final String importName = this.pop().getValue();
         if (this.peek().getType() != TokenType.DOT) {
-            throw new ParseException("Expected DOT, found " + this.pop().getType(), this.prev());
+            throw new ParserException("Expected DOT, found " + this.pop().getType(), this.prev());
         }
         this.pop();
         if (this.peek().getType() != TokenType.WORD) {
-            throw new ParseException("Expected WORD, found " + this.pop().getType(), this.prev());
+            throw new ParserException("Expected WORD, found " + this.pop().getType(), this.prev());
         }
         final String routineName = this.pop().getValue();
-        return new Command.ImportCallCommand(start.getLocation().combineWith(this.sourceLines, this.prev().getLocation()), importName, routineName);
+        return new Command.ImportCallCommand(start.getLocation().combineWith(this.fileName,
+                this.sourceLines, this.prev().getLocation()), importName, routineName);
     }
 
     private Command parseRoutineCall() {
@@ -148,13 +154,14 @@ public class Parser {
 
         final Token nameToken = this.pop();
         if (nameToken.getType() != TokenType.WORD) {
-            throw new ParseException("Expected WORD, got " + nameToken.getType(), nameToken);
+            throw new ParserException("Expected WORD, got " + nameToken.getType(), nameToken);
         }
         if (!nameToken.getValue().matches("[a-zA-Z_]+\\w+")) {
-            throw new ParseException("Routine name must match [a-zA-Z_]+\\w+", nameToken);
+            throw new ParserException("Routine name must match [a-zA-Z_]+\\w+", nameToken);
         }
         final String rtName = nameToken.getValue();
-        return new Command.RoutineCallCommand(origin.getLocation().combineWith(this.sourceLines, nameToken.getLocation()), rtName);
+        return new Command.RoutineCallCommand(origin.getLocation()
+                .combineWith(this.fileName, this.sourceLines, nameToken.getLocation()), rtName);
     }
 
     private Command parseStringPush() {
@@ -167,7 +174,8 @@ public class Parser {
         }
 
         if (start.getLocation().fromLineNum() != end.getLocation().toLineNum()) {
-            throw new ParseException("Multiline strings are not supported", start.getLocation().combineWith(this.sourceLines, end.getLocation()));
+            throw new ParserException("Multiline strings are not supported", start.getLocation()
+                    .combineWith(this.fileName, this.sourceLines, end.getLocation()));
         }
 
         String str = start.getLocation().firstLine().substring(
@@ -201,7 +209,7 @@ public class Parser {
             i++;
         }
 
-        return new Command.PushCommand(start.getLocation().combineWith(end.getLocation()), str);
+        return new Command.PushCommand(start.getLocation().combineWith(this.fileName, end.getLocation()), str);
     }
 
     private Command parseWord() {
@@ -232,7 +240,7 @@ public class Parser {
                     if (word.getValue().startsWith("native_")) {
                         yield this.parseNativeCall(word);
                     }
-                    throw new ParseException("Unknown command", word);
+                    throw new ParserException("Unknown command", word);
                 }
             };
         }
@@ -246,30 +254,31 @@ public class Parser {
         Command next;
         while (!((next = this.parseCommand()) instanceof Command.EndCommand)) {
             if (next instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParseException("Routines can not be declared inside of loops", illegal.getOrigin());
+                throw new ParserException("Routines can not be declared inside of loops", illegal.getOrigin());
             }
             body.add(next);
         }
         final Token end = this.prev();
 
-        return new Command.LoopCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), type, body);
+        return new Command.LoopCommand(start.getLocation()
+                .combineWith(this.fileName, this.sourceLines, end.getLocation()), type, body);
     }
 
     private Command parseImport() {
         if (!this.importAllowed) {
-            throw new ParseException("Imports must be placed in front of any other commands", this.prev());
+            throw new ParserException("Imports must be placed in front of any other commands", this.prev());
         }
 
         final Token start = this.prev();
         if (this.peek().getType() != TokenType.QUOTATION) {
-            throw new ParseException("String expected", this.peek());
+            throw new ParserException("String expected", this.peek());
         }
 
         // Kinda hacky, but it works
         final Command strCmd = this.parseStringPush();
         final String importPath = (String) ((Command.PushCommand) strCmd).getParsedValue();
         if (!importPath.matches("(\\w+\\/)*\\w+(\\.edina)?")) {
-            throw new ParseException("Invalid import path '" + importPath + "'", strCmd.getOrigin());
+            throw new ParserException("Invalid import path '" + importPath + "'", strCmd.getOrigin());
         }
 
         final String[] importSplit = importPath.split("/");
@@ -277,16 +286,17 @@ public class Parser {
         if (this.tokenNum < this.tokens.size() && this.peek().getType() == TokenType.WORD && this.peek().getValue().equals("as")) {
             this.pop();
             if (this.peek().getType() != TokenType.WORD) {
-                throw new ParseException("Expected WORD, got " + this.pop().getType(), this.prev());
+                throw new ParserException("Expected WORD, got " + this.pop().getType(), this.prev());
             }
             name = this.pop().getValue();
             if (!name.matches("\\w+")) {
-                throw new ParseException("Unexpected import name", this.prev());
+                throw new ParserException("Unexpected import name", this.prev());
             }
         }
         final Token end = this.prev();
 
-        return new Command.ImportCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()), importPath, name);
+        return new Command.ImportCommand(start.getLocation()
+                .combineWith(this.fileName, this.sourceLines, end.getLocation()), importPath, name);
     }
 
     private Command parseIf() {
@@ -297,7 +307,7 @@ public class Parser {
         while (!this.peek().getValue().equals("end") && !this.peek().getValue().equals("else")) {
             final Command cmd = this.parseCommand();
             if (cmd instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParseException("Routines can not be declared inside of if statements", illegal.getOrigin());
+                throw new ParserException("Routines can not be declared inside of if statements", illegal.getOrigin());
             }
             ifBody.add(cmd);
         }
@@ -307,7 +317,7 @@ public class Parser {
             while (!this.peek().getValue().equals("end")) {
                 final Command cmd = this.parseCommand();
                 if (cmd instanceof Command.RoutineDeclareCommand illegal) {
-                    throw new ParseException("Routines can not be declared inside of else statements", illegal.getOrigin());
+                    throw new ParserException("Routines can not be declared inside of else statements", illegal.getOrigin());
                 }
                 elseBody.add(cmd);
                 if (i++ == 0 && cmd instanceof Command.IfCommand) {
@@ -321,7 +331,7 @@ public class Parser {
         }
         final Token end = this.prev();
 
-        return new Command.IfCommand(start.getLocation().combineWith(this.sourceLines, end.getLocation()),
+        return new Command.IfCommand(start.getLocation().combineWith(this.fileName, this.sourceLines, end.getLocation()),
                 ifBody, elseBody, Command.IfCommand.Type.valueOf(start.getValue().toUpperCase()));
     }
 
@@ -331,7 +341,7 @@ public class Parser {
         try {
             nativeType = Command.NativeCallCommand.Type.valueOf(nativeName.toUpperCase());
         } catch (final Exception igored) {
-            throw new ParseException("Unknown native call", word);
+            throw new ParserException("Unknown native call", word);
         }
         return new Command.NativeCallCommand(word.getLocation(), nativeType);
     }
@@ -341,10 +351,10 @@ public class Parser {
 
         final Token nameToken = this.pop();
         if (nameToken.getType() != TokenType.WORD) {
-            throw new ParseException("Expected WORD, got " + nameToken.getType(), nameToken);
+            throw new ParserException("Expected WORD, got " + nameToken.getType(), nameToken);
         }
         if (!nameToken.getValue().matches("[a-zA-Z_]+\\w+")) {
-            throw new ParseException("Routine name must match [a-zA-Z_]+\\w+", nameToken);
+            throw new ParserException("Routine name must match [a-zA-Z_]+\\w+", nameToken);
         }
         final String rtName = nameToken.getValue();
 
@@ -352,12 +362,13 @@ public class Parser {
         Command next;
         while (!((next = this.parseCommand()) instanceof Command.EndCommand)) {
             if (next instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParseException("Routines can not be declared inside of routines", illegal.getOrigin());
+                throw new ParserException("Routines can not be declared inside of routines", illegal.getOrigin());
             }
             body.add(next);
         }
 
-        return new Command.RoutineDeclareCommand(origin.getLocation().combineWith(this.sourceLines, this.prev().getLocation()), rtName, body);
+        return new Command.RoutineDeclareCommand(origin.getLocation()
+                .combineWith(this.fileName, this.sourceLines, this.prev().getLocation()), rtName, body);
     }
 
     private Command parseLongPush() {
@@ -368,23 +379,23 @@ public class Parser {
             prev = this.pop();
         }
         try {
-            return new Command.PushCommand(prev.getLocation().combineWith(this.prev().getLocation()),
+            return new Command.PushCommand(prev.getLocation().combineWith(this.fileName, this.prev().getLocation()),
                     Long.parseLong((negative ? "-" : "") + prev.getValue()));
         } catch (final NumberFormatException ex) {
-            throw new ParseException("Failed to parse long", ex, prev.getLocation().combineWith(this.prev().getLocation()));
+            throw new ParserException("Failed to parse long", ex, prev.getLocation().combineWith(this.fileName, this.prev().getLocation()));
         }
     }
 
     private Token peek() {
         if (this.tokenNum >= this.tokens.size()) {
-            throw new ParseException("Expected token", this.tokens.get(this.tokenNum - 1));
+            throw new ParserException("Expected token", this.tokens.get(this.tokenNum - 1));
         }
         return this.tokens.get(this.tokenNum);
     }
 
     private Token pop() {
         if (this.tokenNum >= this.tokens.size()) {
-            throw new ParseException("Token expected", this.prev());
+            throw new ParserException("Token expected", this.prev());
         }
         return this.tokens.get(this.tokenNum++);
     }

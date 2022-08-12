@@ -2,7 +2,7 @@ package dev.cerus.edina.eddoc;
 
 import dev.cerus.edina.ast.Parser;
 import dev.cerus.edina.ast.ast.Command;
-import dev.cerus.edina.ast.exception.ParseException;
+import dev.cerus.edina.ast.exception.ParserException;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
 import dev.cerus.edina.eddoc.util.AppPropertiesUtil;
@@ -95,11 +95,11 @@ public class EdDoc {
     private List<Command> readProgram(final File file) {
         try {
             final List<String> lines = Files.readAllLines(file.toPath());
-            final List<Token> tokens = new Tokenizer(lines).tokenize();
-            return new Parser(lines, tokens).parse();
+            final List<Token> tokens = new Tokenizer(file.getName(), lines).tokenize();
+            return new Parser(file.getName(), lines, tokens).parse();
         } catch (final IOException e) {
             throw new RuntimeException("Failed to read program '" + file.getPath() + "'", e);
-        } catch (final ParseException e) {
+        } catch (final ParserException e) {
             throw new RuntimeException("Failed to parse program '" + file.getPath() + "'", e);
         }
     }

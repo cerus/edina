@@ -2,7 +2,7 @@ package dev.cerus.edina.edinaj;
 
 import dev.cerus.edina.ast.Parser;
 import dev.cerus.edina.ast.ast.Command;
-import dev.cerus.edina.ast.exception.ParseException;
+import dev.cerus.edina.ast.exception.ParserException;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
 import dev.cerus.edina.edinaj.compiler.Compiler;
@@ -74,7 +74,9 @@ public class EdinaJ {
         this.println();
 
         // Construct compiler
+        final File sourceFile = new File(this.options.sourceFilePath);
         final Compiler compiler = new Compiler(new CompilerSettings(
+                sourceFile.getName(),
                 this.options.packageName,
                 this.options.debug,
                 this.options.quiet,
@@ -85,7 +87,7 @@ public class EdinaJ {
         // Read script lines
         final List<String> lines;
         try {
-            lines = Files.readAllLines(new File(this.options.sourceFilePath).toPath());
+            lines = Files.readAllLines(sourceFile.toPath());
         } catch (final IOException exception) {
             System.err.println("Failed to read source file: " + exception.getMessage());
             return;
@@ -94,8 +96,8 @@ public class EdinaJ {
         // Run the compiler
         this.println("Compiling " + this.options.sourceFilePath + " to " + this.options.outputFile + "...");
         try {
-            final List<Token> tokens = new Tokenizer(lines).tokenize();
-            final List<Command> ast = new Parser(lines, tokens).parse();
+            final List<Token> tokens = new Tokenizer(sourceFile.getName(), lines).tokenize();
+            final List<Command> ast = new Parser(sourceFile.getName(), lines, tokens).parse();
             for (final Command command : ast) {
                 if (command instanceof Command.RoutineDeclareCommand decl) {
                     compiler.addRoutines(decl);
@@ -104,7 +106,7 @@ public class EdinaJ {
             for (final Command command : ast) {
                 compiler.visit(command);
             }
-        } catch (final ParseException e) {
+        } catch (final ParserException e) {
             e.printDetailedError();
             return;
         } catch (final CompilerException e) {

@@ -2,6 +2,7 @@ package dev.cerus.edina.edinaj.compiler;
 
 import dev.cerus.edina.ast.Parser;
 import dev.cerus.edina.ast.ast.Command;
+import dev.cerus.edina.ast.exception.ParserException;
 import dev.cerus.edina.ast.token.Location;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
@@ -107,7 +108,7 @@ public class Compiler extends CompilerBase {
     private Map<String, byte[]> finishMain() {
         if (this.compilerSettings.isDebug()) {
             this.visitNativeCall(new Command.NativeCallCommand(
-                    Location.singleLine("", 256, 0, 0),
+                    Location.singleLine(this.compilerSettings.getSourceFileName(), "", 256, 0, 0),
                     Command.NativeCallCommand.Type.STACK_DEBUG)
             );
         }
@@ -224,11 +225,12 @@ public class Compiler extends CompilerBase {
             }
 
             final List<String> lines = Files.readAllLines(scriptFile.toPath());
-            final List<Token> tokens = new Tokenizer(lines).tokenize();
-            final List<Command> commands = new Parser(lines, tokens).parse();
+            final List<Token> tokens = new Tokenizer(scriptFile.getName(), lines).tokenize();
+            final List<Command> commands = new Parser(scriptFile.getName(), lines, tokens).parse();
 
             this.println("Starting compilation of import " + importCommand.getImportName());
             final Compiler subCompiler = new Compiler(new CompilerSettings(
+                    scriptFile.getName(),
                     this.compilerSettings.getPackageName() + "/pkg_" + importCommand.getImportName(),
                     false,
                     this.compilerSettings.isQuiet(),
@@ -266,6 +268,8 @@ public class Compiler extends CompilerBase {
                 this.compilerEnv.addClass(subKey, subClasses.get(subKey));
             }
             this.println("Import " + importCommand.getImportName() + " has been compiled successfully");
+        } catch (final ParserException | CompilerException ex) {
+            throw new CompilerException("Failed to compile imported script " + ex.getLocation().fileName(), ex, ex.getLocation());
         } catch (final Throwable t) {
             throw new CompilerException(importCommand, t, "Failed to compile \"" + importCommand.getImportPath() + "\"");
         }

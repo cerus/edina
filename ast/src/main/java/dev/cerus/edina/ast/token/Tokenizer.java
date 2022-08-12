@@ -8,12 +8,14 @@ import java.util.List;
  */
 public class Tokenizer {
 
+    private final String fileName;
     private final List<String> lines;
     private int lineNum;
     private char[] line;
     private int charNum;
 
-    public Tokenizer(final List<String> lines) {
+    public Tokenizer(final String fileName, final List<String> lines) {
+        this.fileName = fileName;
         this.lines = lines;
     }
 
@@ -72,7 +74,7 @@ public class Tokenizer {
                 end++;
             }
             this.charNum--;
-            return Token.of(TokenType.WORD, this.lineNum, this.lines.get(this.lineNum - 1), start, end, builder.toString());
+            return Token.of(TokenType.WORD, this.fileName, this.lineNum, this.lines.get(this.lineNum - 1), start, end, builder.toString());
         } else {
             return null;
         }
@@ -93,7 +95,7 @@ public class Tokenizer {
         if (type == TokenType.MINUS && this.charNum < this.line.length - 1 && Character.isDigit(this.line[this.charNum + 1])) {
             return null;
         }
-        return Token.of(type, this.lineNum, this.lines.get(this.lineNum - 1), this.charNum, this.charNum + 1, String.valueOf(c));
+        return Token.of(type, this.fileName, this.lineNum, this.lines.get(this.lineNum - 1), this.charNum, this.charNum + 1, String.valueOf(c));
     }
 
     /**

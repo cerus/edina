@@ -48,8 +48,8 @@ public class Launcher {
 
             try {
                 final List<String> lines = Arrays.asList(line.split("\n"));
-                final List<Token> tokens = new Tokenizer(lines).tokenize();
-                final List<Command> commands = new Parser(lines, tokens).parse();
+                final List<Token> tokens = new Tokenizer("REPL.edina", lines).tokenize();
+                final List<Command> commands = new Parser("REPL.edina", lines, tokens).parse();
 
                 commands.forEach(command -> {
                     if (command instanceof Command.RoutineDeclareCommand decl) {

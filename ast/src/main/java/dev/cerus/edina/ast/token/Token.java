@@ -15,12 +15,12 @@ public class Token {
         this.type = type;
     }
 
-    public static Token of(final TokenType type, final int lineNum, final String line, final int from, final int to) {
-        return new Token(Location.singleLine(line, lineNum, from, to), line.substring(from, to), type);
+    public static Token of(final TokenType type, final String fileName, final int lineNum, final String line, final int from, final int to) {
+        return new Token(Location.singleLine(fileName, line, lineNum, from, to), line.substring(from, to), type);
     }
 
-    public static Token of(final TokenType type, final int lineNum, final String line, final int from, final int to, final String val) {
-        return new Token(Location.singleLine(line, lineNum, from, to), val, type);
+    public static Token of(final TokenType type, final String fileName, final int lineNum, final String line, final int from, final int to, final String val) {
+        return new Token(Location.singleLine(fileName, line, lineNum, from, to), val, type);
     }
 
     public Location getLocation() {

@@ -9,6 +9,7 @@ import java.util.Collection;
  */
 public class CompilerSettings {
 
+    private final String sourceFileName;
     private final String packageName;
     private final boolean debug;
     private final boolean quiet;
@@ -17,21 +18,24 @@ public class CompilerSettings {
     private final String className;
     private final String originalPackage;
 
-    public CompilerSettings(final String packageName,
+    public CompilerSettings(final String sourceFileName,
+                            final String packageName,
                             final boolean debug,
                             final boolean quiet,
                             final Collection<File> inclusions,
                             final Collection<Launcher.Options.Optimization> optimizations) {
-        this(packageName, debug, quiet, inclusions, optimizations, null, null);
+        this(sourceFileName, packageName, debug, quiet, inclusions, optimizations, null, null);
     }
 
-    public CompilerSettings(final String packageName,
+    public CompilerSettings(final String sourceFileName,
+                            final String packageName,
                             final boolean debug,
                             final boolean quiet,
                             final Collection<File> inclusions,
                             final Collection<Launcher.Options.Optimization> optimizations,
                             final String className,
                             final String originalPackage) {
+        this.sourceFileName = sourceFileName;
         this.packageName = packageName.replace(".", "/");
         this.debug = debug;
         this.quiet = quiet;
@@ -39,6 +43,10 @@ public class CompilerSettings {
         this.optimizations = optimizations;
         this.className = className == null ? null : this.packageName + "/" + className;
         this.originalPackage = originalPackage;
+    }
+
+    public String getSourceFileName() {
+        return this.sourceFileName;
     }
 
     public String getPackageName() {
