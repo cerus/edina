@@ -95,7 +95,8 @@ public class Launcher {
         public List<Optimization> optimizations = new ArrayList<>();
 
         public enum Optimization {
-            ROUTINE_INLINE
+            ROUTINE_INLINE,
+            SMART_BRANCHES
         }
 
     }

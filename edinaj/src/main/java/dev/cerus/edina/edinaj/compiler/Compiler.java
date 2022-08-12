@@ -186,6 +186,47 @@ public class Compiler extends CompilerBase {
     }
 
     @Override
+    public Void visitIf(final Command.IfCommand ifCommand) {
+        if (this.compilerSettings.optimizationEnabled(Launcher.Options.Optimization.SMART_BRANCHES)
+                && this.compilerEnv.getTrackedStackTop() != null) {
+            final long topVal = this.compilerEnv.getTrackedStackTop();
+            if ((ifCommand.getType() == Command.IfCommand.Type.IFN && topVal != 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFZ && topVal == 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFGT && topVal >= 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFLT && topVal <= 0)) {
+                for (final Command command : ifCommand.getIfBody()) {
+                    this.visit(command);
+                }
+                return null;
+            } else if ((ifCommand.getType() == Command.IfCommand.Type.IFN && topVal == 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFZ && topVal != 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFGT && topVal < 0)
+                    || (ifCommand.getType() == Command.IfCommand.Type.IFLT && topVal > 0)) {
+                if (ifCommand.getElseBody() != null) {
+                    for (final Command command : ifCommand.getElseBody()) {
+                        this.visit(command);
+                    }
+                }
+                return null;
+            }
+        }
+        return super.visitIf(ifCommand);
+    }
+
+    @Override
+    public Void visitLoop(final Command.LoopCommand loopCommand) {
+        if (this.compilerSettings.optimizationEnabled(Launcher.Options.Optimization.SMART_BRANCHES)
+                && this.compilerEnv.getTrackedStackTop() != null) {
+            final long topVal = this.compilerEnv.getTrackedStackTop();
+            if ((loopCommand.getType() == Command.LoopCommand.Type.WHILE && topVal == 0)
+                    || (loopCommand.getType() == Command.LoopCommand.Type.UNTIL && topVal != 0)) {
+                return null;
+            }
+        }
+        return super.visitLoop(loopCommand);
+    }
+
+    @Override
     public Void visitImport(final Command.ImportCommand importCommand) {
         try {
             File scriptFile = null;

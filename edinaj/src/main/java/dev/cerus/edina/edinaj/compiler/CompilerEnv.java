@@ -15,6 +15,7 @@ public class CompilerEnv {
     private final Map<String, Import> fileImportMap = new HashMap<>();
     private final Map<String, Command.RoutineDeclareCommand> routineMap = new HashMap<>();
     private final Set<String> usedRoutines = new HashSet<>();
+    private Long trackedStackTop;
 
     public void addClass(final String name, final byte[] cls) {
         this.classMap.put(name, cls);
@@ -33,6 +34,14 @@ public class CompilerEnv {
         if (!this.usedRoutines.contains(rtName)) {
             this.usedRoutines.add(rtName);
         }
+    }
+
+    public void trackStackTop(final long val) {
+        this.trackedStackTop = val;
+    }
+
+    public void trackStackTopUnknown() {
+        this.trackedStackTop = null;
     }
 
     public byte[] getClassByName(final String name) {
@@ -74,6 +83,10 @@ public class CompilerEnv {
 
     public Map<String, byte[]> getClassMap() {
         return Map.copyOf(this.classMap);
+    }
+
+    public Long getTrackedStackTop() {
+        return this.trackedStackTop;
     }
 
     public record Import(String name, String path, Compiler compiler) {
