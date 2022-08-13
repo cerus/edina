@@ -89,6 +89,13 @@ public class Launcher {
 
         @Parameter(
                 order = 8,
+                names = {"--restricted", "-T"},
+                description = "Restricts IO to stdout/stderr/stdin only"
+        )
+        public boolean restricted = false;
+
+        @Parameter(
+                order = 9,
                 names = {"--optimize"},
                 description = "Specify optimizations that should be applied"
         )

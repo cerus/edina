@@ -30,10 +30,9 @@ public class Natives {
     private static final int O_APPEND = 0x400;
     private static final int O_NONBLOCK = 0x800;
     private static final int O_DIRECTORY = 0x10000;
-
     private final Map<Long, FileChannel> openedChannels = new HashMap<>();
     private final Stack stack;
-
+    private boolean restricted = false;
     private long fdIndex = 1000;
 
     public Natives(final Stack stack) {
@@ -61,6 +60,11 @@ public class Natives {
         final String path = new StringBuilder(new String(this.stack.popByteArray())).reverse().toString();
         final long flags = this.stack.popLong();
         final Set<OpenOption> opts = new HashSet<>();
+
+        if (this.restricted) {
+            this.stack.push(-1);
+            return;
+        }
 
         if ((flags & O_RDONLY) != 0 || (flags & O_RDWR) != 0) {
             opts.add(StandardOpenOption.READ);
@@ -205,6 +209,10 @@ public class Natives {
         for (final FileChannel value : this.openedChannels.values()) {
             value.close();
         }
+    }
+
+    public void setRestricted(final boolean restricted) {
+        this.restricted = restricted;
     }
 
 }

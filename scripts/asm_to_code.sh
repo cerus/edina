@@ -14,6 +14,7 @@ replacements=(
   ["dev/cerus/edina/edinaj/asm/App"]="\" + settings.getAppName() + \""
   ["dev/cerus/edina/edinaj/asm/Natives"]="\" + settings.getNativesName() + \""
   ["(V17,"]="(V1_8,"
+  ["\"RESTRICTED\", \"Z\", null, new Integer(1));"]="\"RESTRICTED\", \"Z\", null, new Integer(settings.isRestricted() ? 1 : 0));"
 )
 
 replacer () {
@@ -52,6 +53,10 @@ replacer () {
   do
   	replace "$i" "${replacements[$i]}" -- $jout2
   done
+
+  if [ "$1" == "asm_launcher" ]; then
+    replace "ICONST_0" "settings.isRestricted() ? ICONST_1 : ICONST_0" -- $jout2
+  fi
 
   mv $jout2 $jout
   rm $outf

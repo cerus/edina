@@ -80,6 +80,7 @@ public class EdinaJ {
                 this.options.packageName,
                 this.options.debug,
                 this.options.quiet,
+                this.options.restricted,
                 inclusions,
                 this.options.optimizations
         ));

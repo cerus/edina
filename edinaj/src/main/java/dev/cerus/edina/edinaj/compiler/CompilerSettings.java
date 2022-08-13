@@ -13,6 +13,7 @@ public class CompilerSettings {
     private final String packageName;
     private final boolean debug;
     private final boolean quiet;
+    private final boolean restricted;
     private final Collection<File> inclusions;
     private final Collection<Launcher.Options.Optimization> optimizations;
     private final String className;
@@ -22,15 +23,17 @@ public class CompilerSettings {
                             final String packageName,
                             final boolean debug,
                             final boolean quiet,
+                            final boolean restricted,
                             final Collection<File> inclusions,
                             final Collection<Launcher.Options.Optimization> optimizations) {
-        this(sourceFileName, packageName, debug, quiet, inclusions, optimizations, null, null);
+        this(sourceFileName, packageName, debug, quiet, restricted, inclusions, optimizations, null, null);
     }
 
     public CompilerSettings(final String sourceFileName,
                             final String packageName,
                             final boolean debug,
                             final boolean quiet,
+                            final boolean restricted,
                             final Collection<File> inclusions,
                             final Collection<Launcher.Options.Optimization> optimizations,
                             final String className,
@@ -39,6 +42,7 @@ public class CompilerSettings {
         this.packageName = packageName.replace(".", "/");
         this.debug = debug;
         this.quiet = quiet;
+        this.restricted = restricted;
         this.inclusions = inclusions;
         this.optimizations = optimizations;
         this.className = className == null ? null : this.packageName + "/" + className;
@@ -59,6 +63,10 @@ public class CompilerSettings {
 
     public boolean isQuiet() {
         return this.quiet;
+    }
+
+    public boolean isRestricted() {
+        return this.restricted;
     }
 
     public Collection<File> getInclusions() {

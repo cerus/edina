@@ -267,6 +267,7 @@ public class Compiler extends CompilerBase {
                     this.compilerSettings.getPackageName() + "/pkg_" + importCommand.getImportName(),
                     false,
                     this.compilerSettings.isQuiet(),
+                    this.compilerSettings.isRestricted(),
                     this.compilerSettings.getInclusions(),
                     List.of(),
                     "c_" + importCommand.getImportName().split("\\.")[0],
