@@ -7,7 +7,9 @@ standard library.
 Edina is mostly a hobby project. Due to its stack-oriented design it's a little restrictive and hard to program in, but that's what makes it fun in my
 opinion.
 
-Paradigms: [imperative](https://en.wikipedia.org/wiki/Imperative_programming), [concatenative](https://en.wikipedia.org/wiki/Concatenative_programming_language), [stack-oriented](https://en.wikipedia.org/wiki/Stack-oriented_programming)
+Paradigms: [imperative](https://en.wikipedia.org/wiki/Imperative_programming)
+, [concatenative](https://en.wikipedia.org/wiki/Concatenative_programming_language)
+, [stack-oriented](https://en.wikipedia.org/wiki/Stack-oriented_programming)
 
 <p align="center">
   <img width="400" src="https://cerus.dev/img/hello_world_edina2.png?" alt="&quot;Hello World&quot; program" />
@@ -30,6 +32,7 @@ Paradigms: [imperative](https://en.wikipedia.org/wiki/Imperative_programming), [
 ## Try it out
 
 To try out Edina follow these steps:
+
 1. Clone the repository
 2. Build the project (see [Building](#building))
 3. Create `script.edina`
@@ -44,9 +47,11 @@ do not have to terminate your statements. The only place where a terminator comm
 
 Let's start with the most important feature first: Comments! Edina comments are started with a `#` and span across the rest of the line.
 
-Comments are very important for the readability of code - the stack-oriented design can make it difficult to understand what code is doing with a quick glance. Documenting your Edina code helps others understand what is going on. This is usually done with so-called stack diagrams.
+Comments are very important for the readability of code - the stack-oriented design can make it difficult to understand what code is doing with a
+quick glance. Documenting your Edina code helps others understand what is going on. This is usually done with so-called stack diagrams.
 
-A stack diagram in Edina describes how the stack will look like after a set of operations has finished. Stack diagrams usually look like this `[a, b, c]` where the leftmost item represents the top and the rightmost item represents the bottom of the stack.
+A stack diagram in Edina describes how the stack will look like after a set of operations has finished. Stack diagrams usually look like
+this `[a, b, c]` where the leftmost item represents the top and the rightmost item represents the bottom of the stack.
 
 ```r
 # This is a comment
@@ -79,10 +84,21 @@ over        # Duplicate the 2nd topmost item to the top   [a, b] -> [b, a, b]
 lroll       # Roll X items N times to the left            [X(3), N(1), a, b, c] -> [b, c, a]
 rroll       # Roll X items N times to the right           [X(3), N(1), a, b, c] -> [c, a, b]
 end         # End the code block / Only used in routines, ifs and loops
-+           # Pop top two items and push sum              [a, b] -> [b+a]
--           # Pop top two items and push difference       [a, b] -> [b-a]
-+           # Pop top two items and push product          [a, b] -> [b*a]
-/           # Pop top two items and push quotient         [a, b] -> [b/a]
+
+# Remember: Top of the stack in stack diagrams is left
++           # Pop top two items and push sum              [a, b] -> [a+b]
+-           # Pop top two items and push difference       [a, b] -> [a-b]
+*           # Pop top two items and push product          [a, b] -> [a*b]
+/           # Pop top two items and push quotient         [a, b] -> [a/b]
+&           # Pop top two items and push ANDed result     [a, b] -> [a&b] 
+|           # Pop top two items and push ORed result      [a, b] -> [a|b] 
+^           # Pop top two items and push XORed result     [a, b] -> [a^b] 
+~           # Pop top item and push flipped result        [a] -> [~a]
+
+
+3 5 -   # 5 - 3
+1 8 +   # 8 + 1
+4 3 ^   # 3 ^ 4
 ```
 
 In addition to these commands, any signed integer (limited to 64 bits) and string (enclosed by two quotation marks) will act as a push command and
