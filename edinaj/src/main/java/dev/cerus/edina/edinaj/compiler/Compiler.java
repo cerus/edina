@@ -190,22 +190,14 @@ public class Compiler extends CompilerBase {
         if (this.compilerSettings.optimizationEnabled(Launcher.Options.Optimization.SMART_BRANCHES)
                 && this.compilerEnv.getTrackedStackTop() != null) {
             final long topVal = this.compilerEnv.getTrackedStackTop();
-            if ((ifCommand.getType() == Command.IfCommand.Type.IFN && topVal != 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFZ && topVal == 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFGT && topVal >= 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFLT && topVal <= 0)) {
+            if (topVal >= 1) {
                 for (final Command command : ifCommand.getIfBody()) {
                     this.visit(command);
                 }
                 return null;
-            } else if ((ifCommand.getType() == Command.IfCommand.Type.IFN && topVal == 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFZ && topVal != 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFGT && topVal < 0)
-                    || (ifCommand.getType() == Command.IfCommand.Type.IFLT && topVal > 0)) {
-                if (ifCommand.getElseBody() != null) {
-                    for (final Command command : ifCommand.getElseBody()) {
-                        this.visit(command);
-                    }
+            } else if (ifCommand.getElseBody() != null) {
+                for (final Command command : ifCommand.getElseBody()) {
+                    this.visit(command);
                 }
                 return null;
             }

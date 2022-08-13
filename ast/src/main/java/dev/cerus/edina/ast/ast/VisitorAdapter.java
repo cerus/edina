@@ -118,6 +118,11 @@ public class VisitorAdapter<T> implements Visitor<T> {
     }
 
     @Override
+    public T visitComparison(final Command.ComparisonCommand comparisonCommand) {
+        return null;
+    }
+
+    @Override
     public T visitImport(final Command.ImportCommand importCommand) {
         return null;
     }

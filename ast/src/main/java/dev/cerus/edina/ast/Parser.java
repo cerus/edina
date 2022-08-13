@@ -233,7 +233,8 @@ public class Parser {
                 case "rroll" -> new Command.RollRightCommand(word.getLocation());
                 case "end" -> new Command.EndCommand(word.getLocation());
                 case "ssize" -> new Command.StackSizeCommand(word.getLocation());
-                case "ifn", "ifz", "ifgt", "iflt" -> this.parseIf();
+                case "if" -> this.parseIf();
+                case "eq", "neq", "gt", "gte", "lt", "lte" -> this.parseComparison();
                 case "import" -> this.parseImport();
                 case "while", "until" -> this.parseLoop();
                 default -> {
@@ -244,6 +245,18 @@ public class Parser {
                 }
             };
         }
+    }
+
+    private Command parseComparison() {
+        return new Command.ComparisonCommand(this.prev().getLocation(), switch (this.prev().getValue()) {
+            case "eq" -> Command.ComparisonCommand.Type.EQUALS;
+            case "neq" -> Command.ComparisonCommand.Type.NOT_EQUALS;
+            case "gt" -> Command.ComparisonCommand.Type.GREATER_THAN;
+            case "gte" -> Command.ComparisonCommand.Type.GREATER_THAN_EQUALS;
+            case "lt" -> Command.ComparisonCommand.Type.LESSER_THAN;
+            case "lte" -> Command.ComparisonCommand.Type.LESSER_THAN_EQUALS;
+            default -> throw new ParserException("Unknown comparison", this.prev());
+        });
     }
 
     private Command parseLoop() {
@@ -331,8 +344,7 @@ public class Parser {
         }
         final Token end = this.prev();
 
-        return new Command.IfCommand(start.getLocation().combineWith(this.fileName, this.sourceLines, end.getLocation()),
-                ifBody, elseBody, Command.IfCommand.Type.valueOf(start.getValue().toUpperCase()));
+        return new Command.IfCommand(start.getLocation().combineWith(this.fileName, this.sourceLines, end.getLocation()), ifBody, elseBody);
     }
 
     private Command parseNativeCall(final Token word) {

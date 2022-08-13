@@ -50,11 +50,13 @@ end
 } ]
 rt contains
   # [CC, LEN, c, b, a]
-  0         # [R, CC, LEN, c, b, a]
-  1 3 rroll # [LEN, R, CC, c, b, a]
-  dup       # [LEN, LEN, R, CC, c, b, a]
-  # [LEN, LEN, R, CC, c, b, a]
-  ifgt
+  0              # [R, CC, LEN, c, b, a]
+  1 3 rroll      # [LEN, R, CC, c, b, a]
+  dup            # [LEN, LEN, R, CC, c, b, a]
+  0 swap gte     # [GTE, LEN, 0, LEN, R, CC, c, b, a]
+  1 3 rroll pop  # [GTE, LEN, LEN, R, CC, c, b, a]
+  # [GTE, LEN, LEN, R, CC, c, b, a]
+  if
     # Top LEN -> LOOP
     # [LOOP, LEN, R, CC, c, b, a]
     while
@@ -63,8 +65,10 @@ rt contains
       1 5 rroll  # [c, CC, LOOP, LEN, R, b, a]
       over over  # [c, CC, c, CC, LOOP, LEN, R, b, a]
       -          # [c-CC, c, CC, LOOP, LEN, R, b, a]
+      0 eq       # [EQ, 0, c-CC, c, CC, LOOP, LEN, R, b, a]
+      swap pop   # [EQ, c-CC, c, CC, LOOP, LEN, R, b, a]
 
-      ifz
+      if
         # Yep, string contains CC
         pop 1 5 rroll  # [R, c, CC, LOOP, LEN, b, a]
         1 +            # [R(1), c, CC, LOOP, LEN, b, a]
@@ -117,8 +121,10 @@ rt trim_end
   # Trim end of string
   while
     # [LOOP, LEN, c, b, a, TC]
-    swap  # [LEN, LOOP(1), c, b, a, TC]
-    iflt            # if (LEN <= 0)
+    swap           # [LEN, LOOP(1), c, b, a, TC]
+    0 swap lte     # [LTE, LEN, 0, LOOP(1), c, b, a, TC]
+    1 3 rroll pop  # [LTE, LEN, LOOP(1), c, b, a, TC]
+    if              # if (LEN <= 0)
       swap pop 0      # [LOOP(0), LEN, c, b, a, TC]
     else
       dup 3 +    # [LEN+3, LEN, LOOP(1), c, b, a, TC]
@@ -128,7 +134,8 @@ rt trim_end
       1 swap lroll    # [LEN, TC, c, b, a, LOOP(1)]
       1 3 lroll       # [TC, c, LEN, b, a, LOOP(1)]
       over over -     # [TC-c, TC, c, LEN, b, a, LOOP(1)]
-      ifz            # if (TC-c == 0)
+      0 eq swap pop   # [EQ, TC-c, TC, c, LEN, b, a, LOOP(1)]
+      if            # if (TC-c == 0)
         # Prepare for next loop iteration
         # [LOOP, LEN, c, b, a, TC]
         pop            # [TC, c, LEN, b, a, LOOP(1)]

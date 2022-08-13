@@ -116,13 +116,25 @@ public class StringVisitor implements Visitor<String> {
 
     @Override
     public String visitIf(final Command.IfCommand ifCommand) {
-        return ifCommand.getType().name().toLowerCase() + " " + ifCommand.getIfBody().stream()
+        return "if " + ifCommand.getIfBody().stream()
                 .map(this::visit)
                 .collect(Collectors.joining(" ")) + (ifCommand.getElseBody().isEmpty()
                 ? "" : (ifCommand.getElseBody().get(0) instanceof Command.IfCommand
                 ? this.visit(ifCommand.getElseBody().get(0)) : ifCommand.getElseBody().stream()
                 .map(this::visit)
                 .collect(Collectors.joining(" ")) + " end"));
+    }
+
+    @Override
+    public String visitComparison(final Command.ComparisonCommand comparisonCommand) {
+        return switch (comparisonCommand.getType()) {
+            case EQUALS -> "eq";
+            case NOT_EQUALS -> "neq";
+            case GREATER_THAN -> "gt";
+            case GREATER_THAN_EQUALS -> "gte";
+            case LESSER_THAN -> "lt";
+            case LESSER_THAN_EQUALS -> "lte";
+        };
     }
 
     @Override

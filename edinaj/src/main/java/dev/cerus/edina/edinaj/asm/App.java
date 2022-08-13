@@ -17,13 +17,12 @@ public class App {
 
     public void run() {
         this.stack.push(123);
-        this.stack.push(this.stack.popLong() & this.stack.popLong());
-        this.stack.push(69);
-        this.stack.push(this.stack.popLong() | this.stack.popLong());
-        this.stack.push(6969);
-        this.stack.push(this.stack.popLong() ^ this.stack.popLong());
-        this.stack.push(696969);
-        this.stack.push(~this.stack.popLong());
+        this.stack.pushBool(this.stack.peekLong() == this.stack.peekSecondLong());
+        if (this.stack.popLong() > 0) {
+            this.stack.push(111);
+        } else {
+            this.stack.push(222);
+        }
         this.stack.push(321);
     }
 

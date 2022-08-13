@@ -56,6 +56,14 @@ public class Stack {
         return l;
     }
 
+    public long peekSecondLong() {
+        this.checkSize(2);
+        final long temp = this.popLong();
+        final long peek = this.peekLong();
+        this.push(temp);
+        return peek;
+    }
+
     public long peekLong() {
         this.checkSize(1);
         final Object pop = this.stack.peek();
@@ -135,6 +143,10 @@ public class Stack {
             this.push(b);
         }
         this.push(bytes.length);
+    }
+
+    public void pushBool(final boolean b) {
+        this.stack.push(b ? 1L : 0L);
     }
 
     public void push(final Object o) {

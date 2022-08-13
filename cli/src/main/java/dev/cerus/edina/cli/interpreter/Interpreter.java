@@ -145,12 +145,7 @@ public class Interpreter implements Visitor<Void> {
 
     @Override
     public Void visitIf(final Command.IfCommand ifCommand) {
-        if (switch (ifCommand.getType()) {
-            case IFN -> this.environment.getStack().peekLong() != 0;
-            case IFZ -> this.environment.getStack().peekLong() == 0;
-            case IFLT -> this.environment.getStack().peekLong() <= 0;
-            case IFGT -> this.environment.getStack().peekLong() >= 0;
-        }) {
+        if (this.environment.getStack().popLong() >= 1) {
             for (final Command command : ifCommand.getIfBody()) {
                 this.visit(command);
             }
@@ -159,6 +154,11 @@ public class Interpreter implements Visitor<Void> {
                 this.visit(command);
             }
         }
+        return null;
+    }
+
+    @Override
+    public Void visitComparison(final Command.ComparisonCommand comparisonCommand) {
         return null;
     }
 

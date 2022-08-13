@@ -542,44 +542,16 @@ public abstract class Command implements Visitable {
 
     /**
      * Branches the code depending on the topmost item of the stack
-     *
-     * <pre>
-     *     x = peek_topmost_stack_item()
-     *     ifn: if (x != 0)
-     *     ifz: if (x == 0)
-     *     iflt: if (x <= 0)
-     *     ifgt: if (x >= 0)
-     * </pre>
-     *
-     * <pre>
-     *     ifn
-     *       # CODE
-     *     end
-     *
-     *     ifz
-     *       # CODE
-     *     end
-     *
-     *     iflt
-     *       # CODE
-     *     end
-     *
-     *     ifgt
-     *       # CODE
-     *     end
-     * </pre>
      */
     public static class IfCommand extends Command {
 
         private final List<Command> ifBody;
         private final List<Command> elseBody;
-        private final Type type;
 
-        public IfCommand(final Location origin, final List<Command> ifBody, final List<Command> elseBody, final Type type) {
+        public IfCommand(final Location origin, final List<Command> ifBody, final List<Command> elseBody) {
             super(origin);
             this.ifBody = ifBody;
             this.elseBody = elseBody;
-            this.type = type;
         }
 
         @Override
@@ -595,15 +567,45 @@ public abstract class Command implements Visitable {
             return this.elseBody;
         }
 
+    }
+
+    /**
+     * Peeks top two stack items and pushes the result of a comparison (0 or 1)
+     *
+     * <pre>
+     *     eq:  ==
+     *     neq: !=
+     *     gt:  >
+     *     gte: >=
+     *     lt:  <
+     *     lte: <=
+     * </pre>
+     */
+    public static class ComparisonCommand extends Command {
+
+        private final Type type;
+
+        public ComparisonCommand(final Location origin, final Type type) {
+            super(origin);
+            this.type = type;
+        }
+
+        @Override
+        public <T> T accept(final Visitor<T> visitor) {
+            return visitor.visitComparison(this);
+        }
+
         public Type getType() {
             return this.type;
         }
 
         public enum Type {
-            IFN,
-            IFZ,
-            IFGT,
-            IFLT
+            EQUALS,
+            NOT_EQUALS,
+            GREATER_THAN,
+            GREATER_THAN_EQUALS,
+            LESSER_THAN,
+            LESSER_THAN_EQUALS,
         }
 
     }

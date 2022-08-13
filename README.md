@@ -77,6 +77,7 @@ end
 Edina features a small set of commands which, when combined, can be used to create powerful and complex programs.
 
 ```r
+# General commands
 pop         # Drop the topmost element from the stack     [a] -> []
 dup         # Duplicate the topmost item of the stack     [a] -> [a, a]
 swap        # Swap the two topmost items of the stack     [a, b] -> [b, a]
@@ -85,6 +86,16 @@ lroll       # Roll X items N times to the left            [X(3), N(1), a, b, c] 
 rroll       # Roll X items N times to the right           [X(3), N(1), a, b, c] -> [c, a, b]
 end         # End the code block / Only used in routines, ifs and loops
 
+# Comparison commands
+# Peeks two values and pushes result (either 1 or 0 (true or false))
+eq         # True if topmost two items are equal          [a, b] -> [a==b, a, b]
+neq        # True if topmost two items are not equal      [a, b] -> [a!=b, a, b]
+gt         # True if topmost item > 2nd topmost item      [a, b] -> [a>b, a, b]
+gte        # True if topmost item >= 2nd topmost item     [a, b] -> [a>=b, a, b]
+lt         # True if topmost item < 2nd topmost item      [a, b] -> [a<b, a, b]
+lte        # True if topmost item <= 2nd topmost item     [a, b] -> [a<=b, a, b]
+
+# Arithmetic / bitwise commands
 # Remember: Top of the stack in stack diagrams is left
 +           # Pop top two items and push sum              [a, b] -> [a+b]
 -           # Pop top two items and push difference       [a, b] -> [a-b]
@@ -111,7 +122,7 @@ will be pushed to the stack.
             # Strings are naturally reversed due to the stack
 ```
 
-Edina also supports routines (aka functions, methods, sub-routines, ...), a few branching commands, loops and importing other scripts.
+Edina also supports routines (aka functions, methods, sub-routines, ...), ifs, loops and importing other scripts.
 
 ```r
 # ------ Imports ------
@@ -132,27 +143,11 @@ rt my_routine
 end
 .my_routine  # Calling my_routine
 
-# ------ Branching ------
-# if (peek_top_stack_item() != 0)
-ifn
+# ------ If ------
+# if will pop the top stack value and check if it is greater than zero
+if
   # Code
-end
-# if (peek_top_stack_item() == 0)
-ifz
-  # Code
-end
-# if (peek_top_stack_item() <= 0)
-iflt
-  # Code
-end
-# if (peek_top_stack_item() >= 0)
-ifgt
-  # Code
-end
-# Chained ifs
-ifn
-  # Code
-else ifz
+else if
   # Else if code
 else
   # Else code

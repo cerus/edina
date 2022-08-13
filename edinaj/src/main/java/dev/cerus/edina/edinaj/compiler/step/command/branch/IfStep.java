@@ -21,17 +21,12 @@ public class IfStep implements CompilerStep<StepData<Command.IfCommand>> {
         mv.visitLineNumber(obj.data().getOrigin().fromLineNum(), labelIfStart);
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, settings.getMainClassName(), "stack", "L" + settings.getStackName() + ";");
-        mv.visitMethodInsn(INVOKEVIRTUAL, settings.getStackName(), "peekLong", "()J", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, settings.getStackName(), "popLong", "()J", false);
         mv.visitInsn(LCONST_0);
         mv.visitInsn(LCMP);
 
         final Label labelElse = new Label();
-        mv.visitJumpInsn(switch (obj.data().getType()) {
-            case IFN -> IFEQ;
-            case IFZ -> IFNE;
-            case IFLT -> IFGT;
-            case IFGT -> IFLT;
-        }, labelElse);
+        mv.visitJumpInsn(IFLE, labelElse);
 
         final Label labelIfBody = new Label();
         mv.visitLabel(labelIfBody);

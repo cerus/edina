@@ -62,6 +62,8 @@ public interface Visitor<T> {
 
     T visitIf(Command.IfCommand ifCommand);
 
+    T visitComparison(Command.ComparisonCommand comparisonCommand);
+
     T visitImport(Command.ImportCommand importCommand);
 
     T visitImportCall(Command.ImportCallCommand importCallCommand);

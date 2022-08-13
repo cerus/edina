@@ -3,6 +3,7 @@ package dev.cerus.edina.edinaj.compiler;
 import dev.cerus.edina.ast.ast.Command;
 import dev.cerus.edina.ast.ast.VisitorAdapter;
 import dev.cerus.edina.edinaj.compiler.step.CompilerStep;
+import dev.cerus.edina.edinaj.compiler.step.command.branch.ComparisonStep;
 import dev.cerus.edina.edinaj.compiler.step.command.branch.IfStep;
 import dev.cerus.edina.edinaj.compiler.step.command.loop.LoopStep;
 import dev.cerus.edina.edinaj.compiler.step.command.math.ArithmeticStep;
@@ -183,6 +184,12 @@ public abstract class CompilerBase extends VisitorAdapter<Void> {
     @Override
     public Void visitIf(final Command.IfCommand ifCommand) {
         this.compile(new IfStep(), ifCommand);
+        return null;
+    }
+
+    @Override
+    public Void visitComparison(final Command.ComparisonCommand comparisonCommand) {
+        this.compile(new ComparisonStep(), comparisonCommand);
         return null;
     }
 
