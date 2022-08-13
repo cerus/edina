@@ -25,14 +25,19 @@ public abstract class LocatedException extends RuntimeException {
         this.location = location;
     }
 
+    public void printStartBanner() {
+        AnsiConsole.out().println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+    }
+
+    public void printEndBanner() {
+        AnsiConsole.out().println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+    }
+
     /**
      * Print the error details in a nice human-readable fashion
      */
     public void printDetailedError() {
         final AnsiPrintStream stdOut = AnsiConsole.out();
-
-        // Separator
-        stdOut.println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
 
         // Print msg and causes
         stdOut.println(ansi()
@@ -110,9 +115,12 @@ public abstract class LocatedException extends RuntimeException {
                 stdOut.println(ansiLine.reset());
             }
         }
+    }
 
-        // Separator
-        stdOut.println(ansi().a(Ansi.Attribute.STRIKETHROUGH_ON).a(" ".repeat(48)).reset());
+    public void printError() {
+        this.printStartBanner();
+        this.printDetailedError();
+        this.printEndBanner();
     }
 
     private Location loc() {

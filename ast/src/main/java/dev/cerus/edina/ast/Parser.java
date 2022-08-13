@@ -1,6 +1,7 @@
 package dev.cerus.edina.ast;
 
 import dev.cerus.edina.ast.ast.Command;
+import dev.cerus.edina.ast.exception.MultiLocatedException;
 import dev.cerus.edina.ast.exception.ParserException;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.TokenType;
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 public class Parser {
 
+    private final List<ParserException> errors = new ArrayList<>();
     private final String fileName;
     private final List<String> sourceLines;
     private final List<Token> tokens;
@@ -35,14 +37,22 @@ public class Parser {
         this.importAllowed = true;
         final List<Command> commands = new ArrayList<>();
         while (this.tokenNum < this.tokens.size()) {
-            final Command command = this.parseCommand();
-            if (command == null) {
-                throw new UnsupportedOperationException();
+            try {
+                final Command command = this.parseCommand();
+                if (command == null) {
+                    throw new UnsupportedOperationException();
+                }
+                if (!(command instanceof Command.ImportCommand)) {
+                    this.importAllowed = false;
+                }
+                commands.add(command);
+            } catch (final ParserException ex) {
+                this.errors.add(ex);
+                this.tokenNum++;
             }
-            if (!(command instanceof Command.ImportCommand)) {
-                this.importAllowed = false;
-            }
-            commands.add(command);
+        }
+        if (!this.errors.isEmpty()) {
+            throw new MultiLocatedException(this.errors);
         }
         return commands;
     }
@@ -74,8 +84,12 @@ public class Parser {
         // Parse everything inside the [ ]
         final Map<String, Object> elements = new HashMap<>();
         while (this.peek().getType() != TokenType.SQUARE_BRACKET_CLOSE) {
-            final Map.Entry<String, Object> elem = this.parseRoutineAnnotationElement();
-            elements.put(elem.getKey(), elem.getValue());
+            try {
+                final Map.Entry<String, Object> elem = this.parseRoutineAnnotationElement();
+                elements.put(elem.getKey(), elem.getValue());
+            } catch (final ParserException ex) {
+                this.errors.add(ex);
+            }
         }
         final Token end = this.pop();
 
@@ -114,8 +128,12 @@ public class Parser {
             this.pop();
             final Map<String, Object> elements = new HashMap<>();
             while (this.peek().getType() != TokenType.CURLY_BRACKET_CLOSE) {
-                final Map.Entry<String, Object> elem = this.parseRoutineAnnotationElement();
-                elements.put(elem.getKey(), elem.getValue());
+                try {
+                    final Map.Entry<String, Object> elem = this.parseRoutineAnnotationElement();
+                    elements.put(elem.getKey(), elem.getValue());
+                } catch (final ParserException ex) {
+                    this.errors.add(ex);
+                }
             }
             this.pop();
             value = elements;
@@ -264,12 +282,19 @@ public class Parser {
         final Command.LoopCommand.Type type = Command.LoopCommand.Type.valueOf(start.getValue().toUpperCase());
 
         final List<Command> body = new ArrayList<>();
-        Command next;
-        while (!((next = this.parseCommand()) instanceof Command.EndCommand)) {
-            if (next instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParserException("Routines can not be declared inside of loops", illegal.getOrigin());
+        while (true) {
+            try {
+                final Command next = this.parseCommand();
+                if (next instanceof Command.EndCommand) {
+                    break;
+                }
+                if (next instanceof Command.RoutineDeclareCommand illegal) {
+                    throw new ParserException("Routines can not be declared inside of loops", illegal.getOrigin());
+                }
+                body.add(next);
+            } catch (final ParserException ex) {
+                this.errors.add(ex);
             }
-            body.add(next);
         }
         final Token end = this.prev();
 
@@ -318,24 +343,32 @@ public class Parser {
         final List<Command> ifBody = new ArrayList<>();
         final List<Command> elseBody = new ArrayList<>();
         while (!this.peek().getValue().equals("end") && !this.peek().getValue().equals("else")) {
-            final Command cmd = this.parseCommand();
-            if (cmd instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParserException("Routines can not be declared inside of if statements", illegal.getOrigin());
+            try {
+                final Command cmd = this.parseCommand();
+                if (cmd instanceof Command.RoutineDeclareCommand illegal) {
+                    throw new ParserException("Routines can not be declared inside of if statements", illegal.getOrigin());
+                }
+                ifBody.add(cmd);
+            } catch (final ParserException ex) {
+                this.errors.add(ex);
             }
-            ifBody.add(cmd);
         }
         if (this.pop().getValue().equals("else")) {
             int i = 0;
             boolean noEnd = false;
             while (!this.peek().getValue().equals("end")) {
-                final Command cmd = this.parseCommand();
-                if (cmd instanceof Command.RoutineDeclareCommand illegal) {
-                    throw new ParserException("Routines can not be declared inside of else statements", illegal.getOrigin());
-                }
-                elseBody.add(cmd);
-                if (i++ == 0 && cmd instanceof Command.IfCommand) {
-                    noEnd = true;
-                    break;
+                try {
+                    final Command cmd = this.parseCommand();
+                    if (cmd instanceof Command.RoutineDeclareCommand illegal) {
+                        throw new ParserException("Routines can not be declared inside of else statements", illegal.getOrigin());
+                    }
+                    elseBody.add(cmd);
+                    if (i++ == 0 && cmd instanceof Command.IfCommand) {
+                        noEnd = true;
+                        break;
+                    }
+                } catch (final ParserException ex) {
+                    this.errors.add(ex);
                 }
             }
             if (!noEnd) {
@@ -371,12 +404,19 @@ public class Parser {
         final String rtName = nameToken.getValue();
 
         final List<Command> body = new ArrayList<>();
-        Command next;
-        while (!((next = this.parseCommand()) instanceof Command.EndCommand)) {
-            if (next instanceof Command.RoutineDeclareCommand illegal) {
-                throw new ParserException("Routines can not be declared inside of routines", illegal.getOrigin());
+        while (true) {
+            try {
+                final Command next = this.parseCommand();
+                if (next instanceof Command.EndCommand) {
+                    break;
+                }
+                if (next instanceof Command.RoutineDeclareCommand illegal) {
+                    throw new ParserException("Routines can not be declared inside of routines", illegal.getOrigin());
+                }
+                body.add(next);
+            } catch (final ParserException ex) {
+                this.errors.add(ex);
             }
-            body.add(next);
         }
 
         return new Command.RoutineDeclareCommand(origin.getLocation()

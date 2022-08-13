@@ -2,12 +2,11 @@ package dev.cerus.edina.edinaj;
 
 import dev.cerus.edina.ast.Parser;
 import dev.cerus.edina.ast.ast.Command;
-import dev.cerus.edina.ast.exception.ParserException;
+import dev.cerus.edina.ast.exception.LocatedException;
 import dev.cerus.edina.ast.token.Token;
 import dev.cerus.edina.ast.token.Tokenizer;
 import dev.cerus.edina.edinaj.compiler.Compiler;
 import dev.cerus.edina.edinaj.compiler.CompilerSettings;
-import dev.cerus.edina.edinaj.compiler.exception.CompilerException;
 import dev.cerus.edina.edinaj.util.AppPropertiesUtil;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -107,15 +106,14 @@ public class EdinaJ {
             for (final Command command : ast) {
                 compiler.visit(command);
             }
-        } catch (final ParserException e) {
-            e.printDetailedError();
-            return;
-        } catch (final CompilerException e) {
-            e.printDetailedError();
+        } catch (final LocatedException e) {
+            e.printError();
+            System.exit(-1);
             return;
         } catch (final Throwable t) {
             t.printStackTrace();
             System.err.println("Fatal error: " + t.getMessage());
+            System.exit(-2);
             return;
         }
 

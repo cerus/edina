@@ -21,9 +21,14 @@ public class ParserException extends LocatedException {
     }
 
     @Override
-    public void printDetailedError() {
+    public void printStartBanner() {
         System.out.println();
-        super.printDetailedError();
+        super.printStartBanner();
+    }
+
+    @Override
+    public void printEndBanner() {
+        super.printEndBanner();
         System.out.println();
     }
 
