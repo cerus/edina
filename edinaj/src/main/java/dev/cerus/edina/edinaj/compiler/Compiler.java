@@ -80,7 +80,7 @@ public class Compiler extends CompilerBase {
 
         final String[] split = settings.getMainClassName().split("/");
         final String name = split[split.length - 1] + ".java";
-        this.mainClassWriter.visitSource(name, null);
+        this.mainClassWriter.visitSource(this.compilerSettings.getSourceFileName(), null);
 
         this.initCommon();
     }

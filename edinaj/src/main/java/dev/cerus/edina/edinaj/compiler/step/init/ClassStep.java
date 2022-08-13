@@ -22,7 +22,7 @@ public class ClassStep implements CompilerStep<Void> {
         final String[] split = settings.getMainClassName().split("/");
         final String name = split[split.length - 1] + ".java";
 
-        cw.visitSource(name, null);
+        cw.visitSource(settings.getSourceFileName(), null);
         //cw.visitNestMember(settings.getLauncherName() + "$EdinaJ");
         //cw.visitInnerClass(settings.getLauncherName() + "$EdinaJ", settings.getLauncherName(), "EdinaJ", ACC_PRIVATE | ACC_STATIC | ACC_ANNOTATION | ACC_ABSTRACT | ACC_INTERFACE);
         //cw.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup", ACC_PUBLIC | ACC_FINAL | ACC_STATIC);

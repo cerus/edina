@@ -1,6 +1,14 @@
 # edina/edinaj
 
-EdinaJ is a JVM compiler for Edina. The compiler is not trying to optimize any code for now, but that's one of the future goals for this project.
+EdinaJ is a JVM compiler for Edina. The compiler has a few basic built-int optimizations that can be enabled. I'm planning on adding more.
+
+## Optimizations
+
+**ROUTINE_INLINE**\
+Will inline very small routines (5 or fewer commands, no branches, no loops, no import calls, no native calls).
+
+**SMART_BRANCHES**\
+Will not compile branches that 100% will never be called.
 
 ## Usage
 
@@ -27,13 +35,18 @@ java -jar edinaj.jar [options]
     --run, -R
       Runs the Jar after compilation
       Default: false
+    --optimize
+      Specify optimizations that should be applied
+      Default: []
+      Allowed values: [ROUTINE_INLINE, SMART_BRANCHES]
       
 Example: 'java -jar edinaj/target/edinaj.jar -P dev.cerus.script -F script.edina -O script.jar -D'
 ```
 
 ## Used libraries
 
-| Library                                            | License                                                                                       |
-|----------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| [ASM](https://gitlab.ow2.org/asm/asm)              | [3-Clause BSD](https://gitlab.ow2.org/asm/asm/-/raw/master/LICENSE.txt)                       |
-| [JCommander](https://github.com/cbeust/jcommander) | [Apache License 2.0](https://raw.githubusercontent.com/cbeust/jcommander/master/license.txt)  |
+| Library                                            | License                                                                                      |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [ASM](https://gitlab.ow2.org/asm/asm)              | [3-Clause BSD](https://gitlab.ow2.org/asm/asm/-/raw/master/LICENSE.txt)                      |
+| [JCommander](https://github.com/cbeust/jcommander) | [Apache License 2.0](https://raw.githubusercontent.com/cbeust/jcommander/master/license.txt) |
+| [Jansi](https://github.com/fusesource/jansi)       | [Apache License 2.0](https://raw.githubusercontent.com/fusesource/jansi/master/license.txt)  |
