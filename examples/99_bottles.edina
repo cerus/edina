@@ -1,0 +1,62 @@
+import "stdlib/io/std"
+import "stdlib/math/ints"
+import "stdlib/strings"
+
+rt bottle
+  # [Num]
+  0 swap lte 1 3 rroll pop  # [LTE, Num]
+  if
+    pop "No more bottles"
+  else
+    1 eq swap pop
+    if
+      pop "1 bottle"
+    else
+      :ints.int_to_str " bottles" :strings.concat
+    end
+  end
+end
+
+rt bottles_of_beer
+  # [Bottles]
+  dup .bottle
+  " of beer on the wall, " :strings.concat
+  dup 2 + 1 swap rroll
+  # [Num, Len, a, b, c]
+  over over              # [Num, Len, Num, Len, a, b, c]
+  swap 3 + 1 swap lroll  # [Num, Len, a, b, c, Num]
+  .bottle " of beer" :strings.concat :strings.concat
+  :std.println_out
+end
+
+rt take_one_down
+  # [Bottles]
+  0 swap lte 1 3 rroll pop  # [LTE, Bottles]
+  if
+    1 swap -
+    "We've taken them down and passed them around; now we're drunk and passed out!" :std.println_out
+  else
+    1 swap -
+    "Take one down, pass it around, "  # [Len, a, b, c, Num]
+    dup 2 + 1 swap rroll               # [Num, Len, a, b, c]
+    over over swap                     # [Len, Num, Num, Len, a, b, c]
+    3 + 1 swap lroll                   # [Num, Len, a, b, c, Num]
+    .bottle :strings.concat
+    " of beer on the wall" :strings.concat
+    :std.println_out
+  end
+end
+
+10  # Amount of bottles on the wall
+1 while
+  swap           # [Num, Iter]
+  0 gt swap pop  # [0>Num, Num, Iter]
+  if
+    swap pop 0   # [0, Num]
+  else
+    .bottles_of_beer
+    .take_one_down
+    swap         # [Iter, Num]
+  end
+end
+pop pop
