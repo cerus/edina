@@ -20,7 +20,7 @@ public class Sandbox {
         this.code = code;
     }
 
-    public CompletableFuture<SandboxResult> play() {
+    public CompletableFuture<CompletableFuture<SandboxResult>> play() {
         return this.runner.submit(() -> {
             final File scriptFile = new File(this.settings.fileName());
             final File logFile = new File(this.settings.fileName() + ".log");

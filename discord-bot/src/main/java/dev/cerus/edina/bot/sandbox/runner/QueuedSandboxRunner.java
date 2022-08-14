@@ -1,6 +1,9 @@
 package dev.cerus.edina.bot.sandbox.runner;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class QueuedSandboxRunner implements SandboxRunner {
 
+    private final Map<Integer, Runnable> sandboxStartMap = new HashMap<>();
     private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
             1,
             1,
@@ -31,13 +35,17 @@ public class QueuedSandboxRunner implements SandboxRunner {
         protected void afterExecute(final Runnable r, final Throwable t) {
             super.afterExecute(r, t);
             System.out.println("[Runner] Destroying sandbox #" + r.hashCode());
+            QueuedSandboxRunner.this.sandboxStartMap.remove(r.hashCode());
         }
     };
 
     @Override
-    public <T> CompletableFuture<T> submit(final SandboxRunnable<T> runnable, final Runnable cleanupAction) {
-        final CompletableFuture<T> future = new CompletableFuture<>();
-        this.executorService.submit(() -> {
+    public <T> CompletableFuture<CompletableFuture<T>> submit(final SandboxRunnable<T> runnable, final Runnable cleanupAction) {
+        final CompletableFuture<CompletableFuture<T>> future = new CompletableFuture<>();
+        final CompletableFuture<T> actualFuture = new CompletableFuture<>();
+        final Future<?> submit = this.executorService.submit(() -> {
+            future.complete(actualFuture);
+
             Throwable error = null;
             T result = null;
             try {
@@ -50,9 +58,9 @@ public class QueuedSandboxRunner implements SandboxRunner {
             } catch (final Throwable ignored) {
             }
             if (error != null) {
-                future.completeExceptionally(error);
+                actualFuture.completeExceptionally(error);
             } else {
-                future.complete(result);
+                actualFuture.complete(result);
             }
         });
         return future;

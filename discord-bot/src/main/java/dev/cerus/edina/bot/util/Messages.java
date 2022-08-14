@@ -11,6 +11,7 @@ public class Messages {
 
     // TODO: Don't hardcode stuff
     private static final String EMOTE_WAITING = ":hourglass_flowing_sand:";
+    private static final String EMOTE_WAITING_RUNNER = ":zzz:";
     private static final String EMOTE_ERROR = "<:not_like_this:1008168864162525275>";
     private static final String EMOTE_TIMEOUT = "<:carlos:1008169977586651238>";
     private static final String EMOTE_SUCCESS = ":partying_face: ";
@@ -23,7 +24,18 @@ public class Messages {
                 .setEmbeds(initEmbed()
                         .setColor(Color.DARK_GRAY)
                         .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
-                        .setTitle(EMOTE_WAITING + "  Waiting...")
+                        .setTitle(EMOTE_WAITING_RUNNER + "  Waiting for runner...")
+                        .setDescription("```\n \n```")
+                        .build())
+                .build();
+    }
+
+    public static Message sandboxWait(final User initiator) {
+        return new MessageBuilder()
+                .setEmbeds(initEmbed()
+                        .setColor(Color.DARK_GRAY)
+                        .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
+                        .setTitle(EMOTE_WAITING + "  Playing...")
                         .setDescription("```\n \n```")
                         .build())
                 .build();
