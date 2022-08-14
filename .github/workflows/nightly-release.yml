@@ -17,6 +17,7 @@ jobs:
         run: |
           mvn clean package
           zip -r stdlib.zip stdlib/
+          tar -czvf stdlib.tar.gz stdlib/
       - uses: "marvinpinto/action-automatic-releases@d68defdd11f9dcc7f52f35c1b7c236ee7513bcc1"  # Use commit sha to prevent supply chain attacks
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -29,3 +30,4 @@ jobs:
             eddoc/target/eddoc.jar
             cli/target/edina-cli.jar
             stdlib.zip
+            stdlib.tar.gz
