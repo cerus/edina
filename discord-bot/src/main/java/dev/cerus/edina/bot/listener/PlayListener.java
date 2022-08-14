@@ -45,29 +45,26 @@ public class PlayListener extends ListenerAdapter {
         this.cooldown.add(msg.getAuthor().getIdLong());
         msg.reply(replyMsg).queue(message -> {
             final Sandbox sandbox = this.sandboxProvider.createSandbox(code);
-            sandbox.play().whenComplete((future, t) -> {
-                message.editMessage(Messages.sandboxWait(initiator)).queue();
-                future.whenComplete((sandboxResult, throwable) -> {
-                    if (throwable != null) {
-                        System.out.println("Hard error");
-                        throwable.printStackTrace();
-
-                        final ByteArrayOutputStream errorOut = new ByteArrayOutputStream();
-                        final PrintWriter writer = new PrintWriter(errorOut);
-                        throwable.printStackTrace(writer);
-                        final String capturedError = errorOut.toString();
-                        message.editMessage(Messages.sandboxError(initiator, capturedError)).queue();
-                    } else {
-                        final String data = this.stripData(sandboxResult.data());
-                        switch (sandboxResult.type()) {
-                            case TIMEOUT -> message.editMessage(Messages.sandboxTimeout(initiator, data)).queue();
-                            case ERROR -> message.editMessage(Messages.sandboxError(initiator, data)).queue();
-                            case SUCCESS -> message.editMessage(Messages.sandboxSuccess(initiator, data)).queue();
+            sandbox.play()
+                    .onStart(() -> {
+                        message.editMessage(Messages.sandboxWait(initiator)).queue();
+                    }).onEnd((sandboxResult, throwable) -> {
+                        if (throwable != null) {
+                            final ByteArrayOutputStream errorOut = new ByteArrayOutputStream();
+                            final PrintWriter writer = new PrintWriter(errorOut);
+                            throwable.printStackTrace(writer);
+                            final String capturedError = errorOut.toString();
+                            message.editMessage(Messages.sandboxError(initiator, capturedError)).queue();
+                        } else {
+                            final String data = this.stripData(sandboxResult.data());
+                            switch (sandboxResult.type()) {
+                                case TIMEOUT -> message.editMessage(Messages.sandboxTimeout(initiator, data)).queue();
+                                case ERROR -> message.editMessage(Messages.sandboxError(initiator, data)).queue();
+                                case SUCCESS -> message.editMessage(Messages.sandboxSuccess(initiator, data)).queue();
+                            }
                         }
-                    }
-                    this.cooldown.remove(msg.getAuthor().getIdLong());
-                });
-            });
+                        this.cooldown.remove(msg.getAuthor().getIdLong());
+                    });
         });
     }
 

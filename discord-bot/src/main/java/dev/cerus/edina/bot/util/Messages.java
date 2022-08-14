@@ -33,7 +33,7 @@ public class Messages {
     public static Message sandboxWait(final User initiator) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()
-                        .setColor(Color.DARK_GRAY)
+                        .setColor(Color.PINK)
                         .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
                         .setTitle(EMOTE_WAITING + "  Playing...")
                         .setDescription("```\n \n```")

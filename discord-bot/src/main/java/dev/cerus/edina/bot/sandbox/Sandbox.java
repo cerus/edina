@@ -1,11 +1,11 @@
 package dev.cerus.edina.bot.sandbox;
 
 import dev.cerus.edina.bot.sandbox.runner.SandboxRunner;
+import dev.cerus.edina.bot.sandbox.runner.SandboxSubscription;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class Sandbox {
@@ -20,7 +20,7 @@ public class Sandbox {
         this.code = code;
     }
 
-    public CompletableFuture<CompletableFuture<SandboxResult>> play() {
+    public SandboxSubscription<SandboxResult> play() {
         return this.runner.submit(() -> {
             final File scriptFile = new File(this.settings.fileName());
             final File logFile = new File(this.settings.fileName() + ".log");

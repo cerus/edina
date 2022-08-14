@@ -2,8 +2,6 @@ package dev.cerus.edina.bot.sandbox.runner;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,11 +38,10 @@ public class QueuedSandboxRunner implements SandboxRunner {
     };
 
     @Override
-    public <T> CompletableFuture<CompletableFuture<T>> submit(final SandboxRunnable<T> runnable, final Runnable cleanupAction) {
-        final CompletableFuture<CompletableFuture<T>> future = new CompletableFuture<>();
-        final CompletableFuture<T> actualFuture = new CompletableFuture<>();
-        final Future<?> submit = this.executorService.submit(() -> {
-            future.complete(actualFuture);
+    public <T> SandboxSubscription<T> submit(final SandboxRunnable<T> runnable, final Runnable cleanupAction) {
+        final SandboxSubscription<T> subscription = new SandboxSubscription<>();
+        this.executorService.submit(() -> {
+            subscription.start();
 
             Throwable error = null;
             T result = null;
@@ -57,13 +54,9 @@ public class QueuedSandboxRunner implements SandboxRunner {
                 cleanupAction.run();
             } catch (final Throwable ignored) {
             }
-            if (error != null) {
-                actualFuture.completeExceptionally(error);
-            } else {
-                actualFuture.complete(result);
-            }
+            subscription.end(result, error);
         });
-        return future;
+        return subscription;
     }
 
     @Override
