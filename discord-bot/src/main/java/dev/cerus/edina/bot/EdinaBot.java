@@ -31,7 +31,8 @@ public class EdinaBot implements AutoCloseable {
         this.jda = JDABuilder.create(this.botSettings.getToken(),
                         GatewayIntent.GUILD_MESSAGES,
                         GatewayIntent.GUILD_MEMBERS,
-                        GatewayIntent.MESSAGE_CONTENT)
+                        GatewayIntent.MESSAGE_CONTENT,
+                        GatewayIntent.DIRECT_MESSAGES)
                 .addEventListeners(new PlayListener(this.provider)).build().awaitReady();
         this.exec.scheduleAtFixedRate(new PresenceUpdateTask(this.jda, this.runner), 0, 1, TimeUnit.SECONDS);
     }

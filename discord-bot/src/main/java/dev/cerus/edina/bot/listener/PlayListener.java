@@ -32,7 +32,7 @@ public class PlayListener extends ListenerAdapter {
         if (!msgContent.replace("\n", "").matches("```.+```")) {
             return;
         }
-        final String code = msgContent.substring(3, msgContent.length() - 3).trim();
+        final String code = msgContent.substring(msgContent.indexOf('\n'), msgContent.length() - 3).trim();
 
         final User initiator = msg.getAuthor();
         final Message replyMsg = Messages.sandboxEmpty(initiator);

@@ -8,7 +8,7 @@ public class PresenceUpdateTask implements Runnable {
 
     private final JDA jda;
     private final SandboxRunner runner;
-    private int last;
+    private int last = -1;
 
     public PresenceUpdateTask(final JDA jda, final SandboxRunner runner) {
         this.jda = jda;
