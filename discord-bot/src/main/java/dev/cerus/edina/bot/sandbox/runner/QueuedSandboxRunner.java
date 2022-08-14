@@ -1,15 +1,15 @@
 package dev.cerus.edina.bot.sandbox.runner;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Runner implementation that works on one command at a time
+ */
 public class QueuedSandboxRunner implements SandboxRunner {
 
-    private final Map<Integer, Runnable> sandboxStartMap = new HashMap<>();
     private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
             1,
             1,
@@ -33,7 +33,6 @@ public class QueuedSandboxRunner implements SandboxRunner {
         protected void afterExecute(final Runnable r, final Throwable t) {
             super.afterExecute(r, t);
             System.out.println("[Runner] Destroying sandbox #" + r.hashCode());
-            QueuedSandboxRunner.this.sandboxStartMap.remove(r.hashCode());
         }
     };
 
@@ -62,6 +61,11 @@ public class QueuedSandboxRunner implements SandboxRunner {
     @Override
     public int queued() {
         return this.executorService.getQueue().size();
+    }
+
+    @Override
+    public int running() {
+        return this.executorService.getActiveCount();
     }
 
     @Override

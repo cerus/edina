@@ -13,6 +13,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+/**
+ * Bot main class
+ */
 public class EdinaBot implements AutoCloseable {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
@@ -28,12 +31,14 @@ public class EdinaBot implements AutoCloseable {
     }
 
     public void start() throws LoginException, InterruptedException {
+        // Start bot
         this.jda = JDABuilder.create(this.botSettings.getToken(),
                         GatewayIntent.GUILD_MESSAGES,
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.MESSAGE_CONTENT,
                         GatewayIntent.DIRECT_MESSAGES)
                 .addEventListeners(new PlayListener(this.provider)).build().awaitReady();
+        // Start tasks
         this.exec.scheduleAtFixedRate(new PresenceUpdateTask(this.jda, this.runner), 0, 1, TimeUnit.SECONDS);
     }
 

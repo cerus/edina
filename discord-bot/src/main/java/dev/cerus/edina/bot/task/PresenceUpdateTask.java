@@ -4,6 +4,9 @@ import dev.cerus.edina.bot.sandbox.runner.SandboxRunner;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
 
+/**
+ * Displays the amount of queued sandboxes in the bot presence
+ */
 public class PresenceUpdateTask implements Runnable {
 
     private final JDA jda;

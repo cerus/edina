@@ -7,6 +7,9 @@ import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 
+/**
+ * Utility for predefined messages
+ */
 public class Messages {
 
     // TODO: Don't hardcode stuff
@@ -19,6 +22,13 @@ public class Messages {
     private Messages() {
     }
 
+    /**
+     * "Waiting for runner" sandbox message
+     *
+     * @param initiator The initiating user
+     *
+     * @return A new message
+     */
     public static Message sandboxEmpty(final User initiator) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()
@@ -30,6 +40,13 @@ public class Messages {
                 .build();
     }
 
+    /**
+     * "Playing" sandbox message
+     *
+     * @param initiator The initiating user
+     *
+     * @return A new message
+     */
     public static Message sandboxWait(final User initiator) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()
@@ -41,6 +58,13 @@ public class Messages {
                 .build();
     }
 
+    /**
+     * "Sandbox timed out" sandbox message
+     *
+     * @param initiator The initiating user
+     *
+     * @return A new message
+     */
     public static Message sandboxTimeout(final User initiator, final String data) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()
@@ -52,6 +76,13 @@ public class Messages {
                 .build();
     }
 
+    /**
+     * "Sandbox completed with error" sandbox message
+     *
+     * @param initiator The initiating user
+     *
+     * @return A new message
+     */
     public static Message sandboxError(final User initiator, final String data) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()
@@ -63,6 +94,13 @@ public class Messages {
                 .build();
     }
 
+    /**
+     * "Sandbox completed successfully" sandbox message
+     *
+     * @param initiator The initiating user
+     *
+     * @return A new message
+     */
     public static Message sandboxSuccess(final User initiator, final String data) {
         return new MessageBuilder()
                 .setEmbeds(initEmbed()

@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Settings for the bot
+ */
 public class BotSettings {
 
     private static final File FILE = new File("settings.json");

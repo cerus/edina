@@ -28,13 +28,16 @@ public class PlayListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@NotNull final MessageReceivedEvent event) {
         final Message msg = event.getMessage();
+        // Check if we're mentioned
         if (!msg.getMentions().isMentioned(event.getJDA().getSelfUser(), Message.MentionType.USER)) {
             return;
         }
         final String msgContent = msg.getContentRaw().replace(event.getJDA().getSelfUser().getAsMention(), "").trim();
+        // Check if the message contains code
         if (!msgContent.replace("\n", "").matches("```.+```")) {
             return;
         }
+        // Check for cooldown
         if (this.cooldown.contains(msg.getAuthor().getIdLong())) {
             return;
         }
@@ -44,6 +47,7 @@ public class PlayListener extends ListenerAdapter {
         final Message replyMsg = Messages.sandboxEmpty(initiator);
         this.cooldown.add(msg.getAuthor().getIdLong());
         msg.reply(replyMsg).queue(message -> {
+            // Play
             final Sandbox sandbox = this.sandboxProvider.createSandbox(code);
             sandbox.play()
                     .onStart(() -> {

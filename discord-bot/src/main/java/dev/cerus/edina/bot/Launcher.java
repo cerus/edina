@@ -11,6 +11,7 @@ import javax.security.auth.login.LoginException;
 public class Launcher {
 
     public static void main(final String[] args) {
+        // Load settings
         final BotSettings settings = new BotSettings();
         try {
             settings.load();
@@ -19,6 +20,7 @@ public class Launcher {
             return;
         }
 
+        // Create stuff
         final SandboxRunner runner = new QueuedSandboxRunner();
         final SandboxProvider provider = new SimpleSandboxProvider(runner, settings.getCommand());
         final EdinaBot bot = new EdinaBot(settings, runner, provider);
@@ -30,6 +32,7 @@ public class Launcher {
             return;
         }
 
+        // Shutdown logic
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 bot.close();

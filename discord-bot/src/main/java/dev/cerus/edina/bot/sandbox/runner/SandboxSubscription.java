@@ -2,6 +2,9 @@ package dev.cerus.edina.bot.sandbox.runner;
 
 import java.util.function.BiConsumer;
 
+/**
+ * A subscription for sandbox playing sessions
+ */
 public class SandboxSubscription<R> {
 
     private boolean startComplete;
