@@ -1,0 +1,75 @@
+package dev.cerus.edina.bot.util;
+
+import java.awt.Color;
+import java.time.Instant;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+
+public class Messages {
+
+    // TODO: Don't hardcode stuff
+    private static final String EMOTE_WAITING = ":hourglass_flowing_sand:";
+    private static final String EMOTE_ERROR = "<:not_like_this:1008168864162525275>";
+    private static final String EMOTE_TIMEOUT = "<:carlos:1008169977586651238>";
+    private static final String EMOTE_SUCCESS = ":partying_face: ";
+
+    private Messages() {
+    }
+
+    public static Message sandboxEmpty(final User initiator) {
+        return new MessageBuilder()
+                .setEmbeds(initEmbed()
+                        .setColor(Color.DARK_GRAY)
+                        .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
+                        .setTitle(EMOTE_WAITING + "  Waiting...")
+                        .setDescription("```\n \n```")
+                        .build())
+                .build();
+    }
+
+    public static Message sandboxTimeout(final User initiator, final String data) {
+        return new MessageBuilder()
+                .setEmbeds(initEmbed()
+                        .setColor(Color.ORANGE)
+                        .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
+                        .setTitle(EMOTE_TIMEOUT + "  Sandbox timed out")
+                        .setDescription("```\n%s```".formatted(data))
+                        .build())
+                .build();
+    }
+
+    public static Message sandboxError(final User initiator, final String data) {
+        return new MessageBuilder()
+                .setEmbeds(initEmbed()
+                        .setColor(Color.RED)
+                        .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
+                        .setTitle(EMOTE_ERROR + "  Sandbox completed with error")
+                        .setDescription("```\n%s```".formatted(data))
+                        .build())
+                .build();
+    }
+
+    public static Message sandboxSuccess(final User initiator, final String data) {
+        return new MessageBuilder()
+                .setEmbeds(initEmbed()
+                        .setColor(Color.GREEN)
+                        .setFooter(initiator.getAsTag(), initiator.getEffectiveAvatarUrl())
+                        .setTitle(EMOTE_SUCCESS + "  Sandbox completed successfully")
+                        .setDescription("```\n%s```".formatted(data))
+                        .build())
+                .build();
+    }
+
+    private static EmbedBuilder initEmbed() {
+        return new EmbedBuilder()
+                .setAuthor(
+                        "Edina language bot",
+                        "https://github.com/cerus/edina",
+                        "https://cerus.dev/img/edina_lang_logo.png"
+                )
+                .setTimestamp(Instant.now());
+    }
+
+}

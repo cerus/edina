@@ -1,20 +1,38 @@
 package dev.cerus.edina.bot.sandbox.runner;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class QueuedSandboxRunner implements SandboxRunner {
 
-    private final ExecutorService executorService = new ThreadPoolExecutor(
+    private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
             1,
             1,
             5000,
             TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>()
-    );
+    ) {
+        @Override
+        public void execute(@NotNull final Runnable command) {
+            System.out.println("[Runner] Submitting sandbox #" + command.hashCode());
+            super.execute(command);
+        }
+
+        @Override
+        protected void beforeExecute(final Thread t, final Runnable r) {
+            super.beforeExecute(t, r);
+            System.out.println("[Runner] Playing with sandbox #" + r.hashCode());
+        }
+
+        @Override
+        protected void afterExecute(final Runnable r, final Throwable t) {
+            super.afterExecute(r, t);
+            System.out.println("[Runner] Destroying sandbox #" + r.hashCode());
+        }
+    };
 
     @Override
     public <T> CompletableFuture<T> submit(final SandboxRunnable<T> runnable, final Runnable cleanupAction) {
@@ -38,6 +56,11 @@ public class QueuedSandboxRunner implements SandboxRunner {
             }
         });
         return future;
+    }
+
+    @Override
+    public int queued() {
+        return this.executorService.getQueue().size();
     }
 
     @Override

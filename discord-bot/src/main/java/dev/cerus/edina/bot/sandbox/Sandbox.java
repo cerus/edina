@@ -41,7 +41,7 @@ public class Sandbox {
                 final int exit = edinaProc.exitValue();
                 final String data = Files.readString(logFile.toPath());
 
-                if (exit >= 0) {
+                if (exit == 0) {
                     return SandboxResult.of(SandboxResult.Type.SUCCESS, data);
                 } else {
                     return SandboxResult.of(SandboxResult.Type.ERROR, data);
@@ -49,8 +49,10 @@ public class Sandbox {
             }
         }, () -> {
             final File scriptFile = new File(this.settings.fileName());
+            final File jarFile = new File(this.settings.jarName());
             final File logFile = new File(this.settings.fileName() + ".log");
             scriptFile.delete();
+            jarFile.delete();
             logFile.delete();
         });
     }
