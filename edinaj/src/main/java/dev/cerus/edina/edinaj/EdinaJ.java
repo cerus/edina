@@ -108,12 +108,12 @@ public class EdinaJ {
             }
         } catch (final LocatedException e) {
             e.printError();
-            System.exit(-1);
+            System.exit(1);
             return;
         } catch (final Throwable t) {
             t.printStackTrace();
             System.err.println("Fatal error: " + t.getMessage());
-            System.exit(-2);
+            System.exit(2);
             return;
         }
 
