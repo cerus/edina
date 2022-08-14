@@ -40,6 +40,8 @@ To try out Edina follow these steps:
 5. Compile the script (`java -jar edinaj/target/edinaj.jar -P my.script -F script.edina -O script.jar`)
 6. Run the compiled Jar (`java -jar script.jar`)
 
+You can also invite the [Edina Discord bot](discord-bot/README.md) to your server and try it there without performing any of these manual steps.
+
 ## Specification
 
 Edina programs are usually called scripts, even though they are compiled. A script contains many commands. Edina is not whitespace sensitive, and you
