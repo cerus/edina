@@ -1,3 +1,3 @@
 # edina/edinac
 
-EdinaC is going to be a compiler that targets x86 Linux machines.
+EdinaC is going to be a compiler that targets many languages, including Java and ASM.
