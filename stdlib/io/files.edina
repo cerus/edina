@@ -1,0 +1,7 @@
+import "stdlib/strings" as strings
+
+rt read_file
+  # [Path, Flags] -> [Len, a, b, c]
+  native_open  # [Fd]
+
+end

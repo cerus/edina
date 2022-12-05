@@ -1,0 +1,32 @@
+import "stdlib/stack" as stack
+
+rt trim_array
+  # [NLen, Len, c, b, a]
+  over over  # [NLen, Len, NLen, Len, c, b, a]
+  swap -     # [Len-NLen, NLen, Len, c, b, a]
+  0 swap lte # [LTE, Len-NLen, 0, NLen, Len, c, b, a]
+  1 3 rroll  # [0, LTE, Len-NLen, NLen, Len, c, b, a]
+  pop        # [LTE, Len-NLen, NLen, Len, c, b, a]
+
+  0 swap lte 1 3 rroll pop
+  if
+    # Invalid
+    2 :stack.mpop  # [Len, c, b, a]
+  else
+    # [Len-NLen, NLen, Len, c, b, a]
+    pop     # [NLen, Len, c, b, a]
+    over -  # [Len-NLen, Len, c, b, a]
+
+    # Trim to specified length
+    while
+      # [NLen, Len, c, b, a]
+      1 3 rroll      # [c, NLen, Len, b, a]
+      pop swap       # [Len, NLen, b, a]
+      1 swap -       # [Len-1, NLen, b, a]
+      swap           # [NLen, Len-1, b, a]
+      1 swap -       # [NLen-1, Len-1, b, a]
+    end
+    # [NLen, Len, c, b, a]
+    pop  # [Len, c, b, a]
+  end
+end

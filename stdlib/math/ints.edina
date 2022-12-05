@@ -106,6 +106,7 @@ rt int_to_str
   1 3 lroll            # [N, Q, X--100, R, X, S, ...]
   swap pop 0 swap      # Reset Q to zero
   1 3 rroll            # [X--100, N, Q, R, X, S, ...]
+  1 swap -             # [X--100-1, N, Q, R, X, S, ...]
 
   0 swap gte 1 3 rroll pop
   if pop 0 end
@@ -235,6 +236,185 @@ rt int_str_size
   end
 end
 
+rt parse_int
+  # [R, Len, A, B, C]
+  # R = Radix
+
+  # Check if length is > 0
+  over if
+    over 0 0 .int64_max .negate 1 4 rroll  # [Len, Lim, i, Neg, R, Len, A, B, C]
+
+    # I messed up here. Strings are naturally reversed ("abc" -> [3(length), c, b, a]) and this code assumes
+    # that the first char of the string immediately follows after the length. I don't want to restructure all
+    # of the code, so I decided to just pull the real first char to the front.
+
+    dup 6 + 1 swap rroll                             # [C, Len, Lim, i, Neg, R, Len, A, B]
+    1 7 lroll                                        # [Len, Lim, i, Neg, R, Len, C, A, B]
+    # The following comments will assume that the string remains in A, C, B order.
+    1 7 rroll                                        # [A, Len, Lim, i, Neg, R, Len, B, C]
+
+    # Check first char
+    dup .char_zero swap .lt if
+      # First char < '0'; Possible leading + or -
+      dup .char_minus .eq if
+        # First char is -
+        # Set Neg to true
+        1 5 rroll pop 1                              # [Neg(true), A, Len, Lim, i, R, Len, B, C]
+        1 5 lroll                                    # [A, Len, Lim, i, Neg(true), R, Len, B, C]
+        # Set Lim to Int64 Min
+        1 3 rroll pop .int64_min                # [Lim, A, Len, i, Neg(true), R, Len, B, C]
+        1 3 lroll                                    # [A, Len, Lim, i, Neg(true), R, Len, B, C]
+      else
+        dup .char_plus .neq if
+          # First char is not +
+          # TODO: Throw error
+        end
+      end
+
+      # [A, Len, Lim, i, Neg, R, Len, B, C]
+      over 1 .eq if
+        # String only consists of + or -
+        # TODO: Throw error
+      end
+
+      # i++
+      1 4 rroll 1 +                                  # [i+1, A, Len, Lim, Neg, R, Len, B, C]
+      1 4 lroll                                      # [A, Len, Lim, i+1, Neg, R, Len, B, C]
+    end
+
+    # [A, Len, Lim, i, Neg, R, Len, B, C]
+    over 1 swap - 1 swap 7 +                       # [Len-1+7, 1, A, Len, Lim, i, Neg, R, Len, B, C]
+    lroll                                          # [Len, Lim, i, Neg, R, Len, B, C, A]
+
+    # [Len, Lim, i, Neg, R, Len, B, C, A]
+    # 1 7 lroll
+    1 3 rroll swap                                   # [Len, i, Lim, Neg, R, Len, B, C, A]
+    -                                                # [Len-i, Lim, Neg, R, Len, B, C, A]
+    1 4 rroll dup 1 5 lroll                          # [R, Len-i, Lim, Neg, R, Len, B, C, A]
+    1 3 rroll dup 1 4 lroll                          # [Lim, R, Len-i, Lim, Neg, R, Len, B, C, A]
+    / 0   1 3 rroll                                  # [Len-i, Res, Lim/R -> Mm, Lim, Neg, R, Len, B, C, A]
+
+    # [Leni, Res, Mm, Lim, Neg, R, Len, B, C, A]
+    #1 +  # [Leni+1, Res, Mm, Lim, Neg, R, Len, B, C, A]
+    while
+      #1 swap -  # [Leni, Res, Mm, Lim, Neg, R, Len, B, C, A]
+
+      # TODO: Implement the following Java code
+      # // Accumulating negatively avoids surprises near MAX_VALUE
+      # int digit = Character.digit(s.charAt(i++),radix);
+      # if (digit < 0 || result < multmin) {
+      #     throw NumberFormatException.forInputString(s, radix);
+      # }
+      # result *= radix;
+      # if (result < limit + digit) {
+      #     throw NumberFormatException.forInputString(s, radix);
+      # }
+      # result -= digit;
+
+      # Would be +8, but we have to dup so we add 8 instead
+      dup 8 + 1 over                                   # [Leni+8, 1, Leni+8, Leni, Res, Mm, Lim, Neg, R, Len, B, C, A]
+      rroll                                            # [C, Leni+8, Leni, Res, Mm, Lim, Neg, R, Len, B, A]
+      dup .latin1_digit                                # [Dig, C, Leni+8, Leni, Res, Mm, Lim, Neg, R, Len, B, A]
+
+      # Dig < 0 || Dig < Mm
+      0 over .lt                                       # [Dig<0, Dig, C, Leni+8, Leni, Res, Mm, Lim, Neg, R, Len, B, A]
+      1 7 rroll                                        # [Mm, Dig<0, Dig, C, Leni+8, Leni, Res, Lim, Neg, R, Len, B, A]
+      1 7 rroll                                        # [Res, Mm, Dig<0, Dig, C, Leni+8, Leni, Lim, Neg, R, Len, B, A]
+      over over .lt                                    # [Res<Mm, Res, Mm, Dig<0, Dig, C, Leni+8, Leni, Lim, Neg, R, Len, B, A]
+      swap 1 8 lroll                                   # [Res<Mm, Mm, Dig<0, Dig, C, Leni+8, Leni, Res, Lim, Neg, R, Len, B, A]
+      swap 1 8 lroll                                   # [Res<Mm, Dig<0, Dig, C, Leni+8, Leni, Res, Mm, Lim, Neg, R, Len, B, A]
+      | if
+        # TODO: Throw error
+      end
+
+      1 5 rroll                                        # [Res, Dig, C, Leni+8, Leni, Mm, Lim, Neg, R, Len, B, A]
+      1 9 rroll                                        # [R, Res, Dig, C, Leni+8, Leni, Mm, Lim, Neg, Len, B, A]
+      swap over * swap                                 # [R, R*Res, Dig, C, Leni+8, Leni, Mm, Lim, Neg, Len, B, A]
+      1 9 lroll                                        # [R*Res, Dig, C, Leni+8, Leni, Mm, Lim, Neg, R, Len, B, A]
+
+      # TODO: if (result < limit + digit)
+
+      -                                                # [R*Res-Dig, C, Leni+8, Leni, Mm, Lim, Neg, R, Len, B, A]
+
+      # What we need: [Leni, Res, Mm, Lim, Neg, R, Len, B, C, A]
+      swap 1 3 rroll                                   # [Leni+8, C, R*Res-Dig, Leni, Mm, Lim, Neg, R, Len, B, A]
+      1 swap -                                         # [Leni+7, C, R*Res-Dig, Leni, Mm, Lim, Neg, R, Len, B, A]
+      1 swap lroll swap                                # [Leni, R*Res-Dig, Mm, Lim, Neg, R, Len, B, C, A]
+      1 swap -                                         # [Leni-1, R*Res-Dig, Mm, Lim, Neg, R, Len, B, C, A]
+    end
+
+    # [Leni, R*Res-Dig, Mm, Lim, Neg, R, Len, B, C, A]
+    1 5 rroll                                          # [Neg, Leni, Res, Mm, Lim, R, Len, B, C, A]
+    1 3 rroll                                          # [Res, Neg, Leni, Mm, Lim, R, Len, B, C, A]
+    swap 0 .eq if
+      # Negate
+      .negate
+    end
+    # [Res, Leni, Mm, Lim, R, Len, B, C, A]
+    1 5 lroll pop pop pop pop                          # [Res, Len, B, C, A]
+    over 2 + 1 swap lroll                              # [Len, B, C, A, Res]
+
+    # [Len, B, C, A, Res]
+
+    while
+      dup 1 + 1 swap rroll                             # [A, Len, B, C, Res]
+      pop 1 swap -                                     # [Len, B, C, Res]
+    end
+    pop                                                # [Res]
+
+    # If
+  else
+    # TODO: Throw error
+  end
+end
+
+# Equivalent to Character.digit(char, radix)
+# [Ch]
+rt latin1_digit
+  0  # [V, Ch]
+
+  #     int v = -1;
+  #     if (i >= '0' && i <= '9') { v = i - '0'; }
+  #     else if (i >= 'A' && i <= 'Z') { v = i - 'A' + 10; }
+  #     else if (i >= 'a' && i <= 'z') { v = i - 'a' + 10; }
+  #     if (i % 20 == 0) System.out.println();
+  #     System.out.printf("%2d, ", v);
+
+  swap dup                  # [Ch, Ch, V]
+  .char_zero swap .gte       # [Ch >= '0', Ch, V]
+  over .char_nine swap .lte  # [Ch <= '9', Ch >= '0', Ch, V]
+  & if
+    # if (i >= '0' && i <= '9')
+    # [Ch, V]
+    dup .char_zero swap -    # [Ch-'0', Ch, V]
+    1 3 rroll pop            # [Ch-'0' -> V, Ch]
+    swap
+  else
+    dup                    # [Ch, V]
+    .char_A swap .gte       # [Ch >= 'A', Ch, V]
+    over .char_Z swap .lte  # [Ch <= 'Z', Ch >= 'A', Ch, V]
+    & if
+      # else if (i >= 'A' && i <= 'Z')
+      # [Ch, V]
+      dup .char_A swap - 10 +  # [Ch-'A'+10, Ch, V]
+      1 3 rroll pop            # [Ch-'A'+10 -> V, Ch]
+      swap
+    else
+      dup                    # [Ch, V]
+      .char_a swap .gte       # [Ch >= 'a', Ch, V]
+      over .char_z swap .lte  # [Ch <= 'z', Ch >= 'a', Ch, V]
+      & if
+        # else if (i >= 'a' && i <= 'z')
+        # [Ch, V]
+        dup .char_a swap - 10 +  # [Ch-'A'+10, Ch, V]
+        1 3 rroll pop            # [Ch-'A'+10 -> V, Ch]
+        swap
+      end
+    end
+  end
+  pop
+end
+
 
 
 #              #####################
@@ -247,3 +427,18 @@ end
 rt _digit_ten
   10 swap / 48 +
 end
+
+rt char_zero "0" pop end
+rt char_nine "9" pop end
+rt char_A "A" pop end
+rt char_Z "Z" pop end
+rt char_a "a" pop end
+rt char_z "z" pop end
+rt char_plus "+" pop end
+rt char_minus "-" pop end
+
+rt eq eq 1 3 lroll pop pop end
+rt neq neq 1 3 lroll pop pop end
+rt lt lt 1 3 lroll pop pop end
+rt lte lte 1 3 lroll pop pop end
+rt gte gte 1 3 lroll pop pop end

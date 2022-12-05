@@ -1,0 +1,20 @@
+import "stdlib/stack" as stack
+
+rt full_write
+  # [Fd, Len, c, b, a]
+  over 2 +      # [Len+2, Fd, Len, c, b, a]
+  1 swap lroll  # [Len, c, b, a, Fd]
+  :stack.copy   # [Len, c, b, a, Len, c, b, a, Fd]
+  dup 2 * 3 +   # [Len*2+3, Len, c, b, a, Len, c, b, a, Fd]
+  1 swap rroll  # [Fd, Len, c, b, a, Len, c, b, a]
+end
+
+rt full_read
+  # [Fd]
+  0 swap  # [Fd, Len]
+  1       # [Iter, Fd, Len]
+  while
+    # [Iter, Fd, Len]
+
+  end
+end

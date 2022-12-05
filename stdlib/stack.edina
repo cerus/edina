@@ -22,3 +22,38 @@ end
     desc="Alias for .rotate"
 } ]
 rt rot .rotate end
+
+rt multi_pop
+  # [N, ...]
+  1 swap gte     # [GTE, N, 1, ...]
+  3 1 rroll pop  # [GTE, N, ...]
+  if
+    while
+      swap      # [..., N]
+      pop       # [N]
+      1 swap -  # [N-1]
+    end
+    pop
+  end
+end
+
+rt mpop .multi_pop end
+
+rt copy
+  # [Len, c, b, a]
+  dup  # [Len->Iter, Len, c, b, a]
+  while
+    # [Iter, Len, ...]
+    dup 2 +        # [Iter+2, Iter, Len, c, b, a]
+    1 swap rroll   # [a, Iter, Len, c, b]
+    dup 1 3 rroll  # [Iter, a, a, Len, c, b]
+    swap           # [a, Iter, a, Len, c, b]
+    over 3 +       # [Iter+3, a, Iter, a, Len, c, b]
+    1 swap lroll   # [Iter, a, Len, c, b, a]
+    1 3 lroll      # [a, Len, Iter, c, b, a]
+    over 3 +       # [Len+3, a, Len, Iter, c, b, a]
+    1 swap lroll   # [Len, Iter, c, b, a, a]
+    swap 1 swap -  # [Iter-1, Len, c, b, a, a]
+  end
+  pop pop
+end
